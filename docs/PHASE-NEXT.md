@@ -1,6 +1,5 @@
-# 下一阶段（Stage 10 建议）
+# 下一阶段（Stage 11 建议）
 
-1. 在 Android Studio 完成首次 `bundleRelease` 验证
-2. 生成并归档 AAB（按命名规范）
-3. 完成 Internal testing 提交
-4. 收集首轮测试反馈并修复 P0/P1 问题
+1. 执行 internal testing 首轮并收集缺陷
+2. 修复 P0/P1 问题并更新 changelog
+3. 准备 closed testing 提交包
