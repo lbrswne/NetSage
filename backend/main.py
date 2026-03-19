@@ -1,22 +1,30 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from netsage.rules import diagnose_text
 
-app = FastAPI(title="NetSage API", version="0.1.0")
+app = FastAPI(title="NetSage API", version="0.2.0")
+
 
 class DiagnoseRequest(BaseModel):
-    log_text: str
+    log_text: str = Field(..., min_length=1)
+
 
 @app.get('/health')
 def health():
-    return {'status': 'ok'}
+    return {'status': 'ok', 'service': 'netsage-api'}
+
 
 @app.post('/diagnose')
 def diagnose(req: DiagnoseRequest):
-    # TODO: replace with real rule engine
+    top = diagnose_text(req.log_text)
     return {
         'top_causes': [
-            {'name': 'DNS 配置异常', 'confidence': 0.72, 'fix': '检查 DNS 服务器地址与连通性'},
-            {'name': 'DHCP 获取失败', 'confidence': 0.54, 'fix': '释放/续租 IP，检查 DHCP 服务状态'},
-            {'name': '默认网关不可达', 'confidence': 0.38, 'fix': '检查网关地址、路由与链路状态'},
+            {
+                'name': c.name,
+                'confidence': c.confidence,
+                'fix': c.fix,
+                'evidence': c.evidence,
+            }
+            for c in top
         ]
     }
