@@ -1,0 +1,13 @@
+# Local Gradle
+.gradle/
+
+# Build outputs
+**/build/
+
+# Local machine config
+local.properties
+
+# Signing secrets
+keystore.properties
+*.jks
+*.keystore
