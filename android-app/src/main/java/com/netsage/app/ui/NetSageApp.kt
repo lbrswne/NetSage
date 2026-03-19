@@ -1,30 +1,33 @@
 package com.netsage.app.ui
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import com.netsage.app.model.CauseItem
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.netsage.app.ui.screen.InputScreen
 import com.netsage.app.ui.screen.ResultScreen
+import com.netsage.app.viewmodel.DiagnoseViewModel
+import com.netsage.app.viewmodel.ViewModelFactory
 
 @Composable
 fun NetSageApp() {
     val state = remember { AppState() }
+    val vm: DiagnoseViewModel = viewModel(factory = ViewModelFactory())
+    val ui by vm.uiState.collectAsState()
 
     when (state.page) {
-        AppPage.INPUT -> InputScreen(onDiagnose = { _ ->
-            // TODO: replace mock with ViewModel + Retrofit call
-            state.showResult(
-                listOf(
-                    CauseItem("DNS 配置异常", 0.78, "检查 DNS 服务器地址与连通性"),
-                    CauseItem("DHCP 获取失败", 0.64, "释放/续租 IP，检查 DHCP 服务状态"),
-                    CauseItem("默认网关不可达", 0.58, "检查网关与路由")
-                )
-            )
-        })
+        AppPage.INPUT -> InputScreen(onDiagnose = { text -> vm.diagnose(text) })
+        AppPage.RESULT -> ResultScreen(causes = state.causes, onBack = { state.backToInput() })
+    }
 
-        AppPage.RESULT -> ResultScreen(
-            causes = state.causes,
-            onBack = { state.backToInput() }
-        )
+    if (ui.causes.isNotEmpty() && state.page != AppPage.RESULT) {
+        state.showResult(ui.causes)
+    }
+
+    ui.error?.let {
+        Text("错误: $it")
+        vm.clearError()
     }
 }
