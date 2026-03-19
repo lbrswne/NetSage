@@ -28,7 +28,12 @@ class DiagnoseViewModel(private val repo: DiagnoseRepository) : ViewModel() {
                     _uiState.value = DiagnoseUiState(causes = resp.top_causes)
                 }
                 .onFailure { e ->
-                    _uiState.value = DiagnoseUiState(error = e.message ?: "请求失败")
+                    val msg = when {
+                        (e.message ?: "").contains("timeout", ignoreCase = true) -> "请求超时，请稍后重试"
+                        (e.message ?: "").contains("failed to connect", ignoreCase = true) -> "网络不可达，请检查后端是否启动"
+                        else -> "服务异常，请稍后重试"
+                    }
+                    _uiState.value = DiagnoseUiState(error = msg)
                 }
         }
     }

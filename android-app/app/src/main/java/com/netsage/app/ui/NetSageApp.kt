@@ -3,6 +3,7 @@ package com.netsage.app.ui
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ fun NetSageApp() {
                 val report = buildReport(state.causes)
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-report", report))
+                Toast.makeText(context, "报告已复制", Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -42,6 +44,7 @@ fun NetSageApp() {
 
     ui.error?.let {
         Text("错误: $it")
+        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         vm.clearError()
     }
 }
