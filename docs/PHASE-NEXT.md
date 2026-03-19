@@ -1,5 +1,5 @@
-# 下一阶段（Stage 11 建议）
+# 下一阶段（Stage 12 建议）
 
-1. 执行 internal testing 首轮并收集缺陷
-2. 修复 P0/P1 问题并更新 changelog
-3. 准备 closed testing 提交包
+1. 实施 Round1 修复项（P1/P2）
+2. 更新 app 版本号到 v0.1.1 / code 2
+3. 执行回归测试并更新 Go/No-Go

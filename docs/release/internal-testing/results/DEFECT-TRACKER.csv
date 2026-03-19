@@ -1,0 +1,3 @@
+id,severity,title,device,android_version,status,owner,eta,notes
+BUG-001,P1,Diagnose request timeout not user-friendly,Pixel 6,14,OPEN,dev,2026-03-21,Need clearer retry message
+BUG-002,P2,Copy report button lacks success toast,Pixel 4a,13,OPEN,dev,2026-03-22,Add toast after clipboard write
