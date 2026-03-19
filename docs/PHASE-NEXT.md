@@ -1,6 +1,6 @@
-# 下一阶段（Stage 9 建议）
+# 下一阶段（Stage 10 建议）
 
-1. 完成 Android Studio 真机构建与截图采集
-2. 生成首版 AAB 并验证安装
-3. 接入 HTTPS 网关（或反向代理）
-4. 完成隐私政策最终版并上线到可访问 URL
+1. 在 Android Studio 完成首次 `bundleRelease` 验证
+2. 生成并归档 AAB（按命名规范）
+3. 完成 Internal testing 提交
+4. 收集首轮测试反馈并修复 P0/P1 问题
