@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.netsage.app.model.CauseItem
 import com.netsage.app.repo.DiagnoseRepository
+import com.netsage.app.util.ErrorMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -28,11 +29,7 @@ class DiagnoseViewModel(private val repo: DiagnoseRepository) : ViewModel() {
                     _uiState.value = DiagnoseUiState(causes = resp.top_causes)
                 }
                 .onFailure { e ->
-                    val msg = when {
-                        (e.message ?: "").contains("timeout", ignoreCase = true) -> "请求超时，请稍后重试"
-                        (e.message ?: "").contains("failed to connect", ignoreCase = true) -> "网络不可达，请检查后端是否启动"
-                        else -> "服务异常，请稍后重试"
-                    }
+                    val msg = ErrorMapper.mapMessage(e.message)
                     _uiState.value = DiagnoseUiState(error = msg)
                 }
         }
