@@ -16,3 +16,7 @@
 - 完成安卓端骨架 + 首页/结果页静态流程
 - 完成后端 `health` 与 `diagnose` 占位 API
 - 跑通端到端联调（mock 数据）
+
+
+## Author
+NingWanZheng
