@@ -12,11 +12,6 @@
 - `android-app/`：Android 客户端（Kotlin + Compose）
 - `backend/`：诊断 API（FastAPI）
 
-## 本周目标
-- 完成安卓端骨架 + 首页/结果页静态流程
-- 完成后端 `health` 与 `diagnose` 占位 API
-- 跑通端到端联调（mock 数据）
-
 
 ## Author
 NingWanZheng
