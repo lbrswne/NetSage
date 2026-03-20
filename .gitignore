@@ -1,0 +1,12 @@
+﻿android-app/.idea/
+android-app/app/release/
+android-app/pepk.jar
+android-app/sign.zip
+android-app/tmp_make_pdf.ps1
+android-app/copyright_statement.docx
+android-app/copyright_statement.pdf
+android-app/copyright_statement.txt
+android-app/copyright_statement.zip
+backend/.venv/
+backend/__pycache__/
+backend/netsage/__pycache__/

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,7 +29,10 @@ fun NetSageApp() {
         AppPage.INPUT -> InputScreen(onDiagnose = { text -> vm.diagnose(text) })
         AppPage.RESULT -> ResultScreen(
             causes = state.causes,
-            onBack = { state.backToInput() },
+            onBack = {
+                state.backToInput()
+                vm.consumeCauses()
+            },
             onCopyReport = {
                 val report = buildReport(state.causes)
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -38,8 +42,10 @@ fun NetSageApp() {
         )
     }
 
-    if (ui.causes.isNotEmpty() && state.page != AppPage.RESULT) {
-        state.showResult(ui.causes)
+    LaunchedEffect(ui.causes) {
+        if (ui.causes.isNotEmpty() && state.page != AppPage.RESULT) {
+            state.showResult(ui.causes)
+        }
     }
 
     ui.error?.let {

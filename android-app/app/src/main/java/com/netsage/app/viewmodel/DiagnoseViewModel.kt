@@ -38,4 +38,8 @@ class DiagnoseViewModel(private val repo: DiagnoseRepository) : ViewModel() {
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }
+
+    fun consumeCauses() {
+        _uiState.value = _uiState.value.copy(causes = emptyList())
+    }
 }

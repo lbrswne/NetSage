@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.netsage.app.model.CauseItem
 import com.netsage.app.repo.DiagnoseRepository
+import com.netsage.app.util.ErrorMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -28,12 +29,17 @@ class DiagnoseViewModel(private val repo: DiagnoseRepository) : ViewModel() {
                     _uiState.value = DiagnoseUiState(causes = resp.top_causes)
                 }
                 .onFailure { e ->
-                    _uiState.value = DiagnoseUiState(error = e.message ?: "请求失败")
+                    val msg = ErrorMapper.mapMessage(e.message)
+                    _uiState.value = DiagnoseUiState(error = msg)
                 }
         }
     }
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    fun consumeCauses() {
+        _uiState.value = _uiState.value.copy(causes = emptyList())
     }
 }
