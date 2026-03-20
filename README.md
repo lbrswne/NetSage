@@ -12,7 +12,7 @@ backend/：诊断 API（FastAPI）
 
 
 ## Author
-NingWanZheng
+NingWanZheng/宁琬正（东北大学）
 
 ## Project Highlights
 
