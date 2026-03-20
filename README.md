@@ -20,3 +20,17 @@
 
 ## Author
 NingWanZheng
+
+## Project Highlights
+
+### 1) End-to-end delivery from product idea to store submission
+I independently drove NetSage from concept to deliverable: requirement scoping, Android development, release packaging, signing workflow, compliance materials, and AppGallery submission preparation.
+This project demonstrates full-cycle execution instead of isolated coding tasks.
+
+### 2) Practical engineering decision-making under constraints
+During release preparation, I identified key launch blockers (network dependency, compliance/filing constraints, and release readiness).
+To ensure timely delivery, I refactored the app from a server-dependent flow to an offline-capable single-device version, preserving core user value while reducing launch risk.
+
+### 3) Real-world problem solving and ownership
+I handled multiple production-like issues including signing pipeline setup, build/release verification, repository hygiene (sensitive file exclusion), and open-source publication workflow.
+The project reflects strong ownership, structured troubleshooting, and the ability to turn ambiguity into executable steps.
