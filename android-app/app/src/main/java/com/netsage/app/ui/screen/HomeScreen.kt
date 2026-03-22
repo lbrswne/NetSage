@@ -50,7 +50,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("NetSage 离线网络诊断工具箱", style = MaterialTheme.typography.headlineSmall)
-        Text("单机版 · 无需登录 · 无需联网")
+        Text("单机版 · 无需登录 · 无需联网 · 诊断与记录默认本地处理")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
                 "查看《用户协议》",

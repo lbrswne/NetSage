@@ -24,7 +24,7 @@ fun PrivacyConsentDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "欢迎使用 NetSage。为保障您的个人信息安全并满足应用市场审核要求，请您在使用前认真阅读并充分理解《用户协议》与《隐私政策》。点击“同意并继续”表示您已阅读、理解并同意上述内容。",
+                    "欢迎使用 NetSage。当前版本为单机版，主要在本地完成诊断与记录保存。为保障您的个人信息安全并满足应用市场审核要求，请您在使用前认真阅读并充分理解《用户协议》与《隐私政策》。点击“同意并继续”表示您已阅读、理解并同意上述内容。",
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
