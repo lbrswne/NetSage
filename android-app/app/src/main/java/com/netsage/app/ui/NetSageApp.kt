@@ -14,7 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.netsage.app.model.CauseItem
 import com.netsage.app.model.DiagnoseHistoryRecord
+import com.netsage.app.model.FaultCategory
+import com.netsage.app.model.FaultScenario
+import com.netsage.app.model.TroubleshootingChecklist
 import com.netsage.app.repo.OfflineKnowledgeRepository
 import com.netsage.app.ui.component.PrivacyConsentDialog
 import com.netsage.app.ui.screen.ChecklistScreen
@@ -36,6 +40,93 @@ import com.netsage.app.util.SavedReportStore
 import com.netsage.app.util.buildReport
 import com.netsage.app.viewmodel.DiagnoseViewModel
 import com.netsage.app.viewmodel.ViewModelFactory
+
+private fun inferCategory(cause: CauseItem): FaultCategory? {
+    val text = buildString {
+        append(cause.name)
+        append(' ')
+        append(cause.fix)
+        append(' ')
+        append(cause.evidence.joinToString(" "))
+    }.lowercase()
+
+    return when {
+        listOf("dns", "nxdomain", "解析").any { text.contains(it) } -> FaultCategory.DNS
+        listOf("tls", "certificate", "handshake", "证书").any { text.contains(it) } -> FaultCategory.TLS
+        listOf("http", "502", "504", "gateway", "upstream", "网关").any { text.contains(it) } -> FaultCategory.HTTP
+        listOf("丢包", "packet loss", "wireless", "无线").any { text.contains(it) } -> FaultCategory.PACKET_LOSS
+        listOf("route", "gateway", "dhcp", "连接", "网关", "路由").any { text.contains(it) } -> FaultCategory.CONNECTION
+        else -> null
+    }
+}
+
+private fun extractKeywords(cause: CauseItem): List<String> {
+    val tokens = buildList {
+        add(cause.name)
+        add(cause.fix)
+        addAll(cause.evidence)
+    }.flatMap { text ->
+        text.lowercase()
+            .split(Regex("[^a-z0-9\u4e00-\u9fa5+]+"))
+            .filter { it.length >= 2 }
+    }
+
+    return tokens.distinct()
+}
+
+private fun scoreScenario(cause: CauseItem, scenario: FaultScenario): Int {
+    val scenarioText = buildString {
+        append(scenario.title.lowercase())
+        append(' ')
+        append(scenario.symptoms.lowercase())
+        append(' ')
+        append(scenario.checks.joinToString(" ").lowercase())
+        append(' ')
+        append(scenario.fixHints.joinToString(" ").lowercase())
+    }
+    val keywords = extractKeywords(cause)
+    val category = inferCategory(cause)
+    var score = if (category == scenario.category) 6 else 0
+    keywords.forEach { keyword ->
+        if (scenarioText.contains(keyword)) score += if (keyword.length >= 4) 3 else 2
+    }
+    return score
+}
+
+private fun scoreChecklist(cause: CauseItem, checklist: TroubleshootingChecklist): Int {
+    val checklistText = buildString {
+        append(checklist.title.lowercase())
+        append(' ')
+        append(checklist.notes.lowercase())
+        append(' ')
+        append(checklist.steps.joinToString(" ").lowercase())
+    }
+    val keywords = extractKeywords(cause)
+    val category = inferCategory(cause)
+    var score = if (category == checklist.category) 6 else 0
+    keywords.forEach { keyword ->
+        if (checklistText.contains(keyword)) score += if (keyword.length >= 4) 3 else 2
+    }
+    return score
+}
+
+private fun recommendScenarios(causes: List<CauseItem>): List<FaultScenario> {
+    return OfflineKnowledgeRepository.scenarios
+        .map { scenario -> scenario to causes.sumOf { scoreScenario(it, scenario) } }
+        .filter { it.second > 0 }
+        .sortedByDescending { it.second }
+        .map { it.first }
+        .take(3)
+}
+
+private fun recommendChecklists(causes: List<CauseItem>): List<TroubleshootingChecklist> {
+    return OfflineKnowledgeRepository.checklists
+        .map { checklist -> checklist to causes.sumOf { scoreChecklist(it, checklist) } }
+        .filter { it.second > 0 }
+        .sortedByDescending { it.second }
+        .map { it.first }
+        .take(3)
+}
 
 @Composable
 fun NetSageApp() {
@@ -115,18 +206,8 @@ fun NetSageApp() {
 
         state.page == AppPage.RESULT -> ResultScreen(
             causes = state.causes,
-            recommendedChecklists = OfflineKnowledgeRepository.checklists.filter { checklist ->
-                state.causes.any { cause ->
-                    checklist.title.contains(cause.name.take(6), ignoreCase = true) ||
-                        checklist.notes.contains(cause.name.take(6), ignoreCase = true)
-                }
-            },
-            recommendedScenarios = OfflineKnowledgeRepository.scenarios.filter { scenario ->
-                state.causes.any { cause ->
-                    scenario.title.contains(cause.name.take(6), ignoreCase = true) ||
-                        scenario.symptoms.contains(cause.name.take(6), ignoreCase = true)
-                }
-            },
+            recommendedChecklists = recommendChecklists(state.causes),
+            recommendedScenarios = recommendScenarios(state.causes),
             onOpenChecklists = { highlightedId -> state.showChecklists(highlightedId) },
             onOpenScenarios = { highlightedId -> state.showScenarioLibrary(highlightedId) },
             onSaveReport = {
