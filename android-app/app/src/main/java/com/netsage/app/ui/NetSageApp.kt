@@ -201,6 +201,17 @@ fun NetSageApp() {
             onReuse = { item ->
                 state.showInput(item.inputText.ifBlank { item.summary })
             },
+            onCopySummary = { item ->
+                val content = buildString {
+                    appendLine("NetSage 收藏诊断")
+                    appendLine("标题：${item.title}")
+                    appendLine("摘要：${item.summary}")
+                    append("收藏时间：${item.createdAt}")
+                }
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-saved-report", content))
+                Toast.makeText(context, "已复制收藏摘要", Toast.LENGTH_SHORT).show()
+            },
             onDelete = { item ->
                 SavedReportStore.remove(context, item.id)
                 savedReports = SavedReportStore.load(context)

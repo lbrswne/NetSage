@@ -31,6 +31,7 @@ fun SavedReportsScreen(
     onBack: () -> Unit,
     onReuse: (SavedReportItem) -> Unit,
     onDelete: (SavedReportItem) -> Unit,
+    onCopySummary: (SavedReportItem) -> Unit,
     selectedId: Long? = null,
 ) {
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
@@ -100,6 +101,12 @@ fun SavedReportsScreen(
                                 ) {
                                     Text("回填到输入框")
                                 }
+                            }
+                            Button(
+                                onClick = { onCopySummary(item) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("复制收藏摘要")
                             }
                             Button(
                                 onClick = { onDelete(item) },
