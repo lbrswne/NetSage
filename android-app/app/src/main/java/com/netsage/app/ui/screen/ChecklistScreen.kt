@@ -1,5 +1,6 @@
 package com.netsage.app.ui.screen
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import com.netsage.app.model.TroubleshootingChecklist
 fun ChecklistScreen(
     items: List<TroubleshootingChecklist>,
     onBack: () -> Unit,
+    highlightedId: String? = null,
 ) {
     var keyword by remember { mutableStateOf("") }
     val shown = items.filter {
@@ -55,8 +57,19 @@ fun ChecklistScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(shown) { item ->
-                Card(modifier = Modifier.fillMaxWidth()) {
+            items(shown, key = { it.id }) { item ->
+                val isHighlighted = highlightedId == item.id
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (isHighlighted) Modifier.border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.medium,
+                            ) else Modifier
+                        )
+                ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)

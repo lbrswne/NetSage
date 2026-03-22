@@ -11,6 +11,9 @@ class AppState {
     var page by mutableStateOf(AppPage.HOME)
     var causes by mutableStateOf(emptyList<CauseItem>())
     var draftInput by mutableStateOf("")
+    var highlightedScenarioId by mutableStateOf<String?>(null)
+    var highlightedChecklistId by mutableStateOf<String?>(null)
+    var selectedSavedReportId by mutableStateOf<Long?>(null)
 
     fun showInput(prefill: String = draftInput) {
         draftInput = prefill
@@ -20,6 +23,21 @@ class AppState {
     fun showResult(newCauses: List<CauseItem>) {
         causes = newCauses
         page = AppPage.RESULT
+    }
+
+    fun showScenarioLibrary(highlightedId: String? = null) {
+        highlightedScenarioId = highlightedId
+        page = AppPage.SCENARIO_LIBRARY
+    }
+
+    fun showChecklists(highlightedId: String? = null) {
+        highlightedChecklistId = highlightedId
+        page = AppPage.CHECKLISTS
+    }
+
+    fun showSavedReports(selectedId: Long? = null) {
+        selectedSavedReportId = selectedId
+        page = AppPage.SAVED_REPORTS
     }
 
     fun showHome() {

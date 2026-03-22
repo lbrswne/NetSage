@@ -24,8 +24,8 @@ fun ResultScreen(
     causes: List<CauseItem>,
     recommendedChecklists: List<TroubleshootingChecklist> = emptyList(),
     recommendedScenarios: List<FaultScenario> = emptyList(),
-    onOpenChecklists: () -> Unit,
-    onOpenScenarios: () -> Unit,
+    onOpenChecklists: (String?) -> Unit,
+    onOpenScenarios: (String?) -> Unit,
     onSaveReport: () -> Unit,
     onBack: () -> Unit,
     onCopyReport: () -> Unit = {}
@@ -104,12 +104,18 @@ fun ResultScreen(
         }
 
         if (recommendedChecklists.isNotEmpty()) {
-            Button(onClick = onOpenChecklists, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = { onOpenChecklists(recommendedChecklists.firstOrNull()?.id) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("去看推荐排障清单")
             }
         }
         if (recommendedScenarios.isNotEmpty()) {
-            Button(onClick = onOpenScenarios, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = { onOpenScenarios(recommendedScenarios.firstOrNull()?.id) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("去看相关故障场景")
             }
         }

@@ -1,5 +1,6 @@
 package com.netsage.app.ui.screen
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +30,8 @@ import com.netsage.app.model.FaultScenario
 @Composable
 fun ScenarioLibraryScreen(
     scenarios: List<FaultScenario>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    highlightedId: String? = null,
 ) {
     var current by remember { mutableStateOf<FaultCategory?>(null) }
     var keyword by remember { mutableStateOf("") }
@@ -69,9 +71,20 @@ fun ScenarioLibraryScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(shown) { item ->
-                val expanded = item.id in expandedIds
-                Card(modifier = Modifier.fillMaxWidth()) {
+            items(shown, key = { it.id }) { item ->
+                val expanded = item.id in expandedIds || highlightedId == item.id
+                val isHighlighted = highlightedId == item.id
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (isHighlighted) Modifier.border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.medium,
+                            ) else Modifier
+                        )
+                ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)

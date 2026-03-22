@@ -69,12 +69,12 @@ fun NetSageApp() {
 
     val modules = listOf(
         HomeModule("日志诊断", "保留原有核心：粘贴日志得出根因") { state.showInput() },
-        HomeModule("故障场景库", "离线按 DNS/连接/TLS/HTTP/丢包分类") { state.page = AppPage.SCENARIO_LIBRARY },
+        HomeModule("故障场景库", "离线按 DNS/连接/TLS/HTTP/丢包分类") { state.showScenarioLibrary() },
         HomeModule("样例中心", "一键使用内置样例日志进行诊断") { state.page = AppPage.SAMPLE_CENTER },
-        HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.page = AppPage.CHECKLISTS },
+        HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.showChecklists() },
         HomeModule("诊断历史", "本地持久化保存输入和结果摘要") { state.page = AppPage.HISTORY },
         HomeModule("错误码速查", "离线术语/错误码快速查询") { state.page = AppPage.QUICK_REFERENCE },
-        HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.page = AppPage.SAVED_REPORTS }
+        HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() }
     )
 
     when {
@@ -127,8 +127,8 @@ fun NetSageApp() {
                         scenario.symptoms.contains(cause.name.take(6), ignoreCase = true)
                 }
             },
-            onOpenChecklists = { state.page = AppPage.CHECKLISTS },
-            onOpenScenarios = { state.page = AppPage.SCENARIO_LIBRARY },
+            onOpenChecklists = { highlightedId -> state.showChecklists(highlightedId) },
+            onOpenScenarios = { highlightedId -> state.showScenarioLibrary(highlightedId) },
             onSaveReport = {
                 val top = state.causes.firstOrNull()
                 if (top != null) {
@@ -159,6 +159,7 @@ fun NetSageApp() {
 
         state.page == AppPage.SCENARIO_LIBRARY -> ScenarioLibraryScreen(
             scenarios = OfflineKnowledgeRepository.scenarios,
+            highlightedId = state.highlightedScenarioId,
             onBack = { state.showHome() }
         )
 
@@ -172,6 +173,7 @@ fun NetSageApp() {
 
         state.page == AppPage.CHECKLISTS -> ChecklistScreen(
             items = OfflineKnowledgeRepository.checklists,
+            highlightedId = state.highlightedChecklistId,
             onBack = { state.showHome() }
         )
 
@@ -194,6 +196,7 @@ fun NetSageApp() {
 
         state.page == AppPage.SAVED_REPORTS -> SavedReportsScreen(
             items = savedReports,
+            selectedId = state.selectedSavedReportId,
             onBack = { state.showHome() }
         )
     }

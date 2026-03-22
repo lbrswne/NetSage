@@ -1,5 +1,6 @@
 package com.netsage.app.ui.screen
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,9 +29,11 @@ import java.util.Locale
 fun SavedReportsScreen(
     items: List<SavedReportItem>,
     onBack: () -> Unit,
+    selectedId: Long? = null,
 ) {
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
     var keyword by remember { mutableStateOf("") }
+    var expandedId by remember(selectedId) { mutableStateOf(selectedId) }
     val shown = items.filter {
         keyword.isBlank() ||
             it.title.contains(keyword, ignoreCase = true) ||
@@ -63,15 +66,38 @@ fun SavedReportsScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(shown) { item ->
-                Card(modifier = Modifier.fillMaxWidth()) {
+            items(shown, key = { it.id }) { item ->
+                val expanded = expandedId == item.id
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (expanded) Modifier.border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.medium,
+                            ) else Modifier
+                        )
+                ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
-                        Text(item.summary, style = MaterialTheme.typography.bodySmall)
                         Text(formatter.format(Date(item.createdAt)), style = MaterialTheme.typography.labelMedium)
+                        Text(item.summary, style = MaterialTheme.typography.bodySmall)
+                        if (expanded) {
+                            Text("收藏详情", style = MaterialTheme.typography.titleSmall)
+                            Text("• 标题：${item.title}", style = MaterialTheme.typography.bodySmall)
+                            Text("• 摘要：${item.summary}", style = MaterialTheme.typography.bodySmall)
+                            Text("• 收藏时间：${formatter.format(Date(item.createdAt))}", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Button(
+                            onClick = { expandedId = if (expanded) null else item.id },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (expanded) "收起详情" else "查看详情")
+                        }
                     }
                 }
             }
