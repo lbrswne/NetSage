@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -81,20 +83,22 @@ fun InputScreen(
             "网络环境：\n客户端位置/网络类型：\n目标服务/域名：\n已尝试操作："
         )
     )
-    val quickSamples = listOf(
-        "DNS 解析失败" to "nslookup failed: NXDOMAIN; server can't find api.netsage.local",
-        "HTTP 网关错误" to "GET /api/v1/report -> 502 Bad Gateway; upstream connect error or timeout",
-        "TLS 握手失败" to "tls handshake failure: certificate unknown; protocol_version mismatch"
-    )
     val qualityHint = buildInputQualityHint(logText.value)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(NetSagePageBackground)
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = onBackHome) {
+                Text("返回")
+            }
+        }
+
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
@@ -105,7 +109,7 @@ fun InputScreen(
                 modifier = Modifier
                     .background(NetSageHeroGradient)
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text(
@@ -115,7 +119,7 @@ fun InputScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "将日志、报错文本或故障描述粘贴到下方，本地规则会给出 Top3 根因与优先修复建议。",
+                    "先在下方输入区粘贴日志或故障描述，再按需使用模板补充信息。",
                     color = Color.White.copy(alpha = 0.84f),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -130,67 +134,6 @@ fun InputScreen(
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text("录入说明", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("• 支持粘贴日志片段、错误信息、网关报错、DNS / TLS / HTTP 异常描述", style = MaterialTheme.typography.bodyMedium)
-                Text("• 当前为单机版，本页输入内容默认仅用于本地诊断与本地记录", style = MaterialTheme.typography.bodyMedium)
-                Text("• 如果信息不完整，可先套用模板，再补充关键现场信息", style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
-            border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text("快捷模板", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    templates.forEach { template ->
-                        AssistChip(
-                            onClick = { logText.value = template.content },
-                            label = { Text(template.label) }
-                        )
-                    }
-                }
-                Text("快捷样例", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    quickSamples.forEach { (label, content) ->
-                        AssistChip(
-                            onClick = {
-                                logText.value = content
-                                onFillSample(content)
-                            },
-                            label = { Text(label) }
-                        )
-                    }
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("诊断输入区", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -198,10 +141,8 @@ fun InputScreen(
                     value = logText.value,
                     onValueChange = { logText.value = it },
                     label = { Text("粘贴日志 / 报错文本 / 故障描述") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    minLines = 12,
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 10,
                     shape = RoundedCornerShape(18.dp)
                 )
                 Card(
@@ -247,11 +188,55 @@ fun InputScreen(
             border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
         ) {
             Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text("快捷模板", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("点击后会直接填入上方输入区。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    templates.forEach { template ->
+                        AssistChip(
+                            onClick = {
+                                logText.value = template.content
+                                onFillSample(template.content)
+                            },
+                            label = { Text(template.label) }
+                        )
+                    }
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("录入说明", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text("• 支持粘贴日志片段、错误信息、网关报错、DNS / TLS / HTTP 异常描述", style = MaterialTheme.typography.bodySmall)
+                Text("• 当前为单机版，本页输入内容默认仅用于本地诊断与本地记录", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+            border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
+        ) {
+            Column(
                 modifier = Modifier.padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("协议与返回", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text("继续使用即表示您已阅读《用户协议》与《隐私政策》", style = MaterialTheme.typography.bodySmall)
+                Text("协议", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text(
                         "查看《用户协议》",
@@ -265,9 +250,6 @@ fun InputScreen(
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodySmall,
                     )
-                }
-                OutlinedButton(onClick = onBackHome, modifier = Modifier.fillMaxWidth()) {
-                    Text("返回首页")
                 }
             }
         }
