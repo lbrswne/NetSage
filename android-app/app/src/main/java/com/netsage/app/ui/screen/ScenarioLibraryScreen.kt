@@ -3,17 +3,18 @@ package com.netsage.app.ui.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -28,12 +29,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.netsage.app.model.FaultCategory
 import com.netsage.app.model.FaultScenario
+import com.netsage.app.ui.theme.NetSageHeroGradient
+import com.netsage.app.ui.theme.NetSagePageBackground
+import com.netsage.app.ui.theme.NetSageSoftHighlight
+import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
 
 @Composable
 fun ScenarioLibraryScreen(
@@ -55,14 +59,12 @@ fun ScenarioLibraryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF3F7FB))
+            .background(NetSagePageBackground)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onBack) {
-                Text("返回")
-            }
+            OutlinedButton(onClick = onBack) { Text("返回") }
         }
 
         Surface(
@@ -73,24 +75,21 @@ fun ScenarioLibraryScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color(0xFF121A2B), Color(0xFF1C3C5D), Color(0xFF2A7F95))
-                        )
-                    )
+                    .background(NetSageHeroGradient)
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text("故障场景库", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text("离线浏览典型故障场景，快速比对现象、排查步骤与修复建议。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+                Text("当前共 ${scenarios.size} 个场景，支持按分类与关键词快速收敛。", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
             }
         }
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(
@@ -106,12 +105,22 @@ fun ScenarioLibraryScreen(
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp)
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     AssistChip(onClick = { current = null }, label = { Text("全部") })
                     FaultCategory.entries.forEach { category ->
                         AssistChip(onClick = { current = category }, label = { Text(category.label) })
                     }
                 }
+                Text(
+                    "当前筛出 ${shown.size} 项。先按分类缩小范围，再展开详情核对排查步骤。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -119,8 +128,8 @@ fun ScenarioLibraryScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFEEF7FF)),
-                border = BorderStroke(1.dp, Color(0xFFB4D8F4))
+                colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+                border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),
@@ -150,7 +159,7 @@ fun ScenarioLibraryScreen(
                             ) else Modifier
                         ),
                     shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
                 ) {
                     Column(
@@ -161,7 +170,7 @@ fun ScenarioLibraryScreen(
                         Text("现象：${item.symptoms}", style = MaterialTheme.typography.bodyMedium)
                         if (expanded) {
                             Text("排查：${item.checks.joinToString("；")}", style = MaterialTheme.typography.bodySmall)
-                            Text("修复：${item.fixHints.joinToString("；")}", style = MaterialTheme.typography.bodySmall)
+                            Text("修复：${item.fixHints.joinToString("；")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         OutlinedButton(
                             onClick = {

@@ -20,11 +20,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.netsage.app.model.SampleLogItem
+import com.netsage.app.ui.theme.NetSageHeroGradient
+import com.netsage.app.ui.theme.NetSagePageBackground
 
 @Composable
 fun SampleCenterScreen(
@@ -35,7 +36,7 @@ fun SampleCenterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF3F7FB))
+            .background(NetSagePageBackground)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -53,17 +54,30 @@ fun SampleCenterScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color(0xFF111928), Color(0xFF1E405F), Color(0xFF2C7F9A))
-                        )
-                    )
+                    .background(NetSageHeroGradient)
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text("样例中心", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text("快速体验典型网络故障日志，适合演示、试跑与验证推荐链路。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+                Text("当前共 ${samples.size} 条样例，点击即可直接带入输入页继续诊断。", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("使用说明", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("• 样例用于离线演示与回归验收，不依赖联网链路。", style = MaterialTheme.typography.bodySmall)
+                Text("• 点击“使用这个样例”后，会直接回填到输入页继续诊断。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -75,7 +89,7 @@ fun SampleCenterScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
                 ) {
                     Column(
@@ -92,6 +106,10 @@ fun SampleCenterScreen(
                     }
                 }
             }
+        }
+
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("返回首页")
         }
     }
 }
