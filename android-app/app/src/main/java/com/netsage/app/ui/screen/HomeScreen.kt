@@ -8,16 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -28,7 +25,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -133,143 +129,152 @@ fun HomeScreen(
         OverviewStat("历史记录", historyCount.toString(), if (historyCount > 0) "支持继续回填分析" else "等待首次诊断沉淀"),
     )
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(NetSagePageBackground)
-            .padding(16.dp),
+            .background(NetSagePageBackground),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Surface(
-            shape = RoundedCornerShape(30.dp),
-            color = Color.Transparent,
-            shadowElevation = 2.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .background(brush = NetSageHeroGradient)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+        item {
+            Surface(
+                shape = RoundedCornerShape(30.dp),
+                color = Color.Transparent,
+                shadowElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
-                Text(
-                    "离线网络诊断控制台",
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "单机版网络问题工作台：默认本地处理与本地保存，适合快速诊断、复盘与知识查阅。",
-                    color = Color.White.copy(alpha = 0.84f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Column(
+                    modifier = Modifier
+                        .background(brush = NetSageHeroGradient)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    HomeBadge("单机版")
-                    HomeBadge("无需登录")
-                    HomeBadge("无需联网")
-                    HomeBadge("本地处理")
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    Button(onClick = onQuickOpenInput, modifier = Modifier.weight(1f)) {
-                        Text("开始诊断")
-                    }
-                    OutlinedButton(
-                        onClick = onQuickOpenHistory,
-                        modifier = Modifier.weight(1f),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.38f))
+                    Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        "离线网络诊断控制台",
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "单机版网络问题工作台：默认本地处理与本地保存，适合快速诊断、复盘与知识查阅。",
+                        color = Color.White.copy(alpha = 0.84f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("查看历史", color = Color.White)
+                        HomeBadge("单机版")
+                        HomeBadge("无需登录")
+                        HomeBadge("无需联网")
+                        HomeBadge("本地处理")
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                        Button(onClick = onQuickOpenInput, modifier = Modifier.weight(1f)) {
+                            Text("开始诊断")
+                        }
+                        OutlinedButton(
+                            onClick = onQuickOpenHistory,
+                            modifier = Modifier.weight(1f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.38f))
+                        ) {
+                            Text("查看历史", color = Color.White)
+                        }
                     }
                 }
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            overviewStats.forEach { stat ->
-                Box(modifier = Modifier.weight(1f)) {
-                    OverviewCard(stat)
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                overviewStats.forEach { stat ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        OverviewCard(stat)
+                    }
                 }
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text("常用操作", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AssistChip(onClick = onQuickOpenInput, label = { Text("去诊断") })
-                    AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
-                    AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Text(
-                        "查看《用户协议》",
-                        modifier = Modifier.clickable { onOpenUserAgreement() },
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Text(
-                        "查看《隐私政策》",
-                        modifier = Modifier.clickable { onOpenPrivacyPolicy() },
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        }
-
-        latestRecordSummary?.let { summary ->
+        item {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onReuseLatestRecord() },
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
-                border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text("最近一次诊断", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("常用操作", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onReuseLatestRecord) { Text("继续诊断") }
-                        OutlinedButton(onClick = onOpenHistory) { Text("查看历史") }
+                        AssistChip(onClick = onQuickOpenInput, label = { Text("去诊断") })
+                        AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
+                        AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text(
+                            "查看《用户协议》",
+                            modifier = Modifier.clickable { onOpenUserAgreement() },
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Text(
+                            "查看《隐私政策》",
+                            modifier = Modifier.clickable { onOpenPrivacyPolicy() },
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                     }
                 }
             }
         }
 
-        Text("功能入口", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(top = 2.dp, bottom = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            items(allModules) { module ->
-                UtilityModuleCard(module)
+        latestRecordSummary?.let { summary ->
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onReuseLatestRecord() },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+                    border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("最近一次诊断", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onReuseLatestRecord) { Text("继续诊断") }
+                            OutlinedButton(onClick = onOpenHistory) { Text("查看历史") }
+                        }
+                    }
+                }
             }
         }
 
-        Text(
-            "当前首页 / 输入页 / 结果页已收口到统一主题令牌，后续可继续把其余页面接入同一视觉系统。",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        item {
+            Text("功能入口", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        }
+
+        items(allModules.chunked(2).size) { index ->
+            val rowModules = allModules.chunked(2)[index]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                rowModules.forEach { module ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        UtilityModuleCard(module)
+                    }
+                }
+                if (rowModules.size == 1) {
+                    Box(modifier = Modifier.weight(1f))
+                }
+            }
+        }
     }
 }
