@@ -30,6 +30,7 @@ fun SavedReportsScreen(
     items: List<SavedReportItem>,
     onBack: () -> Unit,
     onReuse: (SavedReportItem) -> Unit,
+    onDelete: (SavedReportItem) -> Unit,
     selectedId: Long? = null,
 ) {
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
@@ -99,6 +100,12 @@ fun SavedReportsScreen(
                                 ) {
                                     Text("回填到输入框")
                                 }
+                            }
+                            Button(
+                                onClick = { onDelete(item) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("删除收藏")
                             }
                         }
                         Button(

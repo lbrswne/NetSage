@@ -26,6 +26,11 @@ object SavedReportStore {
         persist(context, merged)
     }
 
+    fun remove(context: Context, id: Long) {
+        val remaining = load(context).filterNot { it.id == id }
+        persist(context, remaining)
+    }
+
     private fun persist(context: Context, list: List<SavedReportItem>) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString(KEY_ITEMS, gson.toJson(list)).apply()

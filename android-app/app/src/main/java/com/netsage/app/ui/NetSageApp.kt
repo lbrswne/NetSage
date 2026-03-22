@@ -201,6 +201,11 @@ fun NetSageApp() {
             onReuse = { item ->
                 state.showInput(item.inputText.ifBlank { item.summary })
             },
+            onDelete = { item ->
+                SavedReportStore.remove(context, item.id)
+                savedReports = SavedReportStore.load(context)
+                Toast.makeText(context, "已删除收藏", Toast.LENGTH_SHORT).show()
+            },
             onBack = { state.showHome() }
         )
     }
