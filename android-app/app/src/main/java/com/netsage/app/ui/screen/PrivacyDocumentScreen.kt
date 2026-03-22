@@ -1,17 +1,24 @@
 package com.netsage.app.ui.screen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 enum class PrivacyDocType(val title: String) {
@@ -96,19 +103,53 @@ fun PrivacyDocumentScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFF3F7FB))
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text(type.title, style = MaterialTheme.typography.headlineSmall)
-        Text(
-            text = content.trim(),
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            color = Color.Transparent,
+            shadowElevation = 2.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(Color(0xFF121826), Color(0xFF213F5B), Color(0xFF2B7A8B))
+                        )
+                    )
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
+                Text(type.title, color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("当前页面为应用内文档说明，统一说明单机版、隐私处理与使用边界。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+
+        Surface(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+        ) {
+            Text(
+                text = content.trim(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text("返回")
         }
     }
