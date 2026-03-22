@@ -63,7 +63,7 @@ private fun buildInputQualityHint(text: String): String {
 fun InputScreen(
     onDiagnose: (String) -> Unit,
     initialText: String = "",
-    onFillSample: (String) -> Unit = {},
+    onFillSample: () -> String = { "" },
     onOpenUserAgreement: () -> Unit = {},
     onOpenPrivacyPolicy: () -> Unit = {},
     onBackHome: () -> Unit = {},
@@ -162,9 +162,10 @@ fun InputScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     OutlinedButton(
                         onClick = {
-                            val sample = "nslookup failed: NXDOMAIN; destination host unreachable"
-                            logText.value = sample
-                            onFillSample(sample)
+                            val sample = onFillSample()
+                            if (sample.isNotBlank()) {
+                                logText.value = sample
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -201,7 +202,6 @@ fun InputScreen(
                         AssistChip(
                             onClick = {
                                 logText.value = template.content
-                                onFillSample(template.content)
                             },
                             label = { Text(template.label) }
                         )

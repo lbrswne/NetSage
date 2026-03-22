@@ -73,6 +73,20 @@ object OfflineKnowledgeRepository {
             hint = "适合演示 DNS 诊断"
         ),
         SampleLogItem(
+            id = "sample_dns_02",
+            title = "本地 DNS 超时样例",
+            category = FaultCategory.DNS,
+            content = "dig api.example.com @192.168.1.1 -> connection timed out; no servers could be reached",
+            hint = "适合演示本地 DNS 无响应"
+        ),
+        SampleLogItem(
+            id = "sample_dns_03",
+            title = "hosts 污染样例",
+            category = FaultCategory.DNS,
+            content = "curl https://api.example.com failed; resolved to 127.0.0.1 from hosts entry",
+            hint = "适合演示本地解析被错误覆盖"
+        ),
+        SampleLogItem(
             id = "sample_http_01",
             title = "HTTP 网关错误样例",
             category = FaultCategory.HTTP,
@@ -80,11 +94,74 @@ object OfflineKnowledgeRepository {
             hint = "适合演示网关/上游异常"
         ),
         SampleLogItem(
+            id = "sample_http_02",
+            title = "HTTP 上游超时样例",
+            category = FaultCategory.HTTP,
+            content = "POST /checkout -> 504 Gateway Timeout; upstream request timed out after 30s",
+            hint = "适合演示长耗时请求超时"
+        ),
+        SampleLogItem(
+            id = "sample_http_03",
+            title = "HTTP 限流样例",
+            category = FaultCategory.HTTP,
+            content = "GET /api/feed -> 429 Too Many Requests; rate limit exceeded for client 10.0.0.25",
+            hint = "适合演示限流类问题"
+        ),
+        SampleLogItem(
             id = "sample_tls_01",
             title = "TLS 握手失败样例",
             category = FaultCategory.TLS,
             content = "tls handshake failure: certificate unknown; protocol_version mismatch",
             hint = "适合演示证书链/TLS 版本问题"
+        ),
+        SampleLogItem(
+            id = "sample_tls_02",
+            title = "证书过期样例",
+            category = FaultCategory.TLS,
+            content = "x509: certificate has expired or is not yet valid; current time drift detected",
+            hint = "适合演示证书有效期与系统时间异常"
+        ),
+        SampleLogItem(
+            id = "sample_tls_03",
+            title = "SNI 不匹配样例",
+            category = FaultCategory.TLS,
+            content = "SSL: no alternative certificate subject name matches target host name 'api.demo.com'",
+            hint = "适合演示证书域名不匹配"
+        ),
+        SampleLogItem(
+            id = "sample_conn_01",
+            title = "网关不可达样例",
+            category = FaultCategory.CONNECTION,
+            content = "ping 10.10.0.1 -> Destination Host Unreachable; no route to host",
+            hint = "适合演示路由/网关异常"
+        ),
+        SampleLogItem(
+            id = "sample_conn_02",
+            title = "TCP 连接超时样例",
+            category = FaultCategory.CONNECTION,
+            content = "dial tcp 172.16.8.20:443: i/o timeout; SYN retransmits exceeded",
+            hint = "适合演示端口不通或链路阻断"
+        ),
+        SampleLogItem(
+            id = "sample_conn_03",
+            title = "连接被拒绝样例",
+            category = FaultCategory.CONNECTION,
+            content = "connect to 10.0.12.9:8080 failed: connection refused",
+            hint = "适合演示服务未监听或被防火墙拒绝"
+        ),
+        SampleLogItem(
+            id = "sample_loss_01",
+            title = "无线高丢包样例",
+            category = FaultCategory.PACKET_LOSS,
+            content = "ping gateway avg=186ms loss=12%; wifi RSSI unstable on channel 149",
+            hint = "适合演示无线干扰与高丢包"
+        ),
+        SampleLogItem(
+            id = "sample_loss_02",
+            title = "跨区域链路抖动样例",
+            category = FaultCategory.PACKET_LOSS,
+            content = "mtr to 8.8.8.8 shows 18% packet loss on hop 7 and latency spike to 320ms",
+            hint = "适合演示中间链路波动"
         )
     )
 

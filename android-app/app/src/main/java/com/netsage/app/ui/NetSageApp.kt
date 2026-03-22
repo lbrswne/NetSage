@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -140,7 +142,15 @@ fun NetSageApp() {
     var currentDoc by remember { mutableStateOf<PrivacyDocType?>(null) }
     var history by remember { mutableStateOf(DiagnoseHistoryStore.load(context)) }
     var savedReports by remember { mutableStateOf(SavedReportStore.load(context)) }
+    var nextSampleIndex by rememberSaveable { mutableIntStateOf(0) }
 
+    val sampleLogs = OfflineKnowledgeRepository.sampleLogs
+    fun takeNextSample(): String {
+        if (sampleLogs.isEmpty()) return ""
+        val sample = sampleLogs[nextSampleIndex % sampleLogs.size]
+        nextSampleIndex = (nextSampleIndex + 1) % sampleLogs.size
+        return sample.content
+    }
 
     val modules = listOf(
         HomeModule("故障场景库", "离线按 DNS/连接/TLS/HTTP/丢包分类") { state.showScenarioLibrary() },
@@ -197,6 +207,11 @@ fun NetSageApp() {
                 vm.diagnose(text)
             },
             initialText = state.draftInput,
+            onFillSample = {
+                val sample = takeNextSample()
+                state.draftInput = sample
+                sample
+            },
             onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
             onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
             onBackHome = { state.showHome() }
@@ -244,7 +259,7 @@ fun NetSageApp() {
         )
 
         state.page == AppPage.SAMPLE_CENTER -> SampleCenterScreen(
-            samples = OfflineKnowledgeRepository.sampleLogs,
+            samples = sampleLogs,
             onUseSample = { sample ->
                 state.showInput(sample)
             },
