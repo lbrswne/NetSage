@@ -22,6 +22,7 @@ import com.netsage.app.model.FaultCategory
 import com.netsage.app.model.FaultScenario
 import com.netsage.app.model.TroubleshootingChecklist
 import com.netsage.app.repo.OfflineKnowledgeRepository
+import com.netsage.app.ui.screen.AppearanceSettingsScreen
 import com.netsage.app.ui.screen.ChecklistScreen
 import com.netsage.app.ui.screen.HistoryScreen
 import com.netsage.app.ui.screen.HomeModule
@@ -35,6 +36,7 @@ import com.netsage.app.ui.screen.ResultScreen
 import com.netsage.app.ui.screen.SampleCenterScreen
 import com.netsage.app.ui.screen.SavedReportsScreen
 import com.netsage.app.ui.screen.ScenarioLibraryScreen
+import com.netsage.app.util.AppearanceSettings
 import com.netsage.app.util.DiagnoseHistoryStore
 import com.netsage.app.model.SavedReportItem
 import com.netsage.app.util.PrivacyPrefs
@@ -131,7 +133,10 @@ private fun recommendChecklists(causes: List<CauseItem>): List<TroubleshootingCh
 }
 
 @Composable
-fun NetSageApp() {
+fun NetSageApp(
+    appearanceSettings: AppearanceSettings,
+    onUpdateAppearanceSettings: (AppearanceSettings) -> Unit,
+) {
     val state = remember { AppState() }
     val context = LocalContext.current
     val activity = context as? Activity
@@ -157,7 +162,8 @@ fun NetSageApp() {
         HomeModule("样例中心", "一键使用内置样例日志进行诊断") { state.page = AppPage.SAMPLE_CENTER },
         HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.showChecklists() },
         HomeModule("错误码速查", "离线术语/错误码快速查询") { state.page = AppPage.QUICK_REFERENCE },
-        HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() }
+        HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
+        HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
 
     when {
@@ -199,6 +205,7 @@ fun NetSageApp() {
             onOpenHistory = { state.page = AppPage.HISTORY },
             onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
             onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
+            onOpenAppearanceSettings = { state.page = AppPage.APPEARANCE_SETTINGS },
         )
 
         state.page == AppPage.INPUT -> InputScreen(
@@ -310,6 +317,17 @@ fun NetSageApp() {
                 SavedReportStore.remove(context, item.id)
                 savedReports = SavedReportStore.load(context)
                 Toast.makeText(context, "已删除收藏", Toast.LENGTH_SHORT).show()
+            },
+            onBack = { state.showHome() }
+        )
+
+        state.page == AppPage.APPEARANCE_SETTINGS -> AppearanceSettingsScreen(
+            settings = appearanceSettings,
+            onSelectFontScale = { option ->
+                onUpdateAppearanceSettings(appearanceSettings.copy(fontScale = option))
+            },
+            onSelectThemeStyle = { option ->
+                onUpdateAppearanceSettings(appearanceSettings.copy(themeStyle = option))
             },
             onBack = { state.showHome() }
         )

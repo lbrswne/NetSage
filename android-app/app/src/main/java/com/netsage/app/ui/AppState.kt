@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.netsage.app.model.CauseItem
 
-enum class AppPage { HOME, INPUT, RESULT, SCENARIO_LIBRARY, HISTORY, QUICK_REFERENCE, SAMPLE_CENTER, CHECKLISTS, SAVED_REPORTS }
+enum class AppPage { HOME, INPUT, RESULT, SCENARIO_LIBRARY, HISTORY, QUICK_REFERENCE, SAMPLE_CENTER, CHECKLISTS, SAVED_REPORTS, APPEARANCE_SETTINGS }
 
 class AppState {
     var page by mutableStateOf(AppPage.HOME)

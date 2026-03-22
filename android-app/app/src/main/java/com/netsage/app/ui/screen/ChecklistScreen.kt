@@ -30,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.netsage.app.model.TroubleshootingChecklist
 import com.netsage.app.ui.theme.NetSageHeroGradient
-import com.netsage.app.ui.theme.NetSagePageBackground
 import com.netsage.app.ui.theme.NetSageSoftHighlight
 import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
 
@@ -51,7 +50,7 @@ fun ChecklistScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NetSagePageBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {

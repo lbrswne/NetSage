@@ -28,7 +28,6 @@ import com.netsage.app.model.CauseItem
 import com.netsage.app.model.FaultScenario
 import com.netsage.app.model.TroubleshootingChecklist
 import com.netsage.app.ui.theme.NetSageHeroGradient
-import com.netsage.app.ui.theme.NetSagePageBackground
 
 private data class ActionStep(
     val title: String,
@@ -179,7 +178,7 @@ fun ResultScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NetSagePageBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {

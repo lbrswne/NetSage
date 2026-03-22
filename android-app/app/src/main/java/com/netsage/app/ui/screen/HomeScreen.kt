@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.netsage.app.ui.theme.NetSageHeroGradient
-import com.netsage.app.ui.theme.NetSagePageBackground
 import com.netsage.app.ui.theme.NetSageSoftHighlight
 import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
 
@@ -122,6 +121,7 @@ fun HomeScreen(
     onOpenHistory: () -> Unit,
     onOpenUserAgreement: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
+    onOpenAppearanceSettings: () -> Unit,
 ) {
     val allModules = modules
     val overviewStats = listOf(
@@ -132,7 +132,7 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(NetSagePageBackground),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -223,6 +223,12 @@ fun HomeScreen(
                         Text(
                             "查看《隐私政策》",
                             modifier = Modifier.clickable { onOpenPrivacyPolicy() },
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Text(
+                            "显示与风格",
+                            modifier = Modifier.clickable { onOpenAppearanceSettings() },
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodySmall,
                         )
