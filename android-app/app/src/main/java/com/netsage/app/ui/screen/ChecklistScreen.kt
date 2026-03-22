@@ -53,6 +53,18 @@ fun ChecklistScreen(
             singleLine = true,
         )
 
+        if (highlightedId != null) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text("已定位到推荐排障清单", style = MaterialTheme.typography.titleSmall)
+                    Text("下方带高亮边框的卡片即为本次诊断推荐项。", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
