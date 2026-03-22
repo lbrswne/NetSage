@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -62,11 +63,35 @@ fun HistoryScreen(
 ) {
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
     var keyword by remember { mutableStateOf("") }
+    var showClearConfirm by remember { mutableStateOf(false) }
     val shown = records.filter {
         keyword.isBlank() ||
             it.inputSummary.contains(keyword, ignoreCase = true) ||
             it.resultSummary.contains(keyword, ignoreCase = true) ||
             it.inputText.contains(keyword, ignoreCase = true)
+    }
+
+    if (showClearConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirm = false },
+            title = { Text("确认清空历史？") },
+            text = { Text("清空后将删除本机上的全部诊断历史记录，且无法恢复。") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onClear()
+                        showClearConfirm = false
+                    }
+                ) {
+                    Text("确认清空")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showClearConfirm = false }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 
     Column(
@@ -126,7 +151,11 @@ fun HistoryScreen(
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp)
                 )
-                OutlinedButton(onClick = onClear, modifier = Modifier.fillMaxWidth(), enabled = records.isNotEmpty()) {
+                OutlinedButton(
+                    onClick = { showClearConfirm = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = records.isNotEmpty()
+                ) {
                     Text("清空历史")
                 }
             }

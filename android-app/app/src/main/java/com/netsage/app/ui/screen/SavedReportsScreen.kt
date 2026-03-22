@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -66,10 +67,35 @@ fun SavedReportsScreen(
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
     var keyword by remember { mutableStateOf("") }
     var expandedId by remember(selectedId) { mutableStateOf(selectedId) }
+    var pendingDeleteItem by remember { mutableStateOf<SavedReportItem?>(null) }
     val shown = items.filter {
         keyword.isBlank() ||
             it.title.contains(keyword, ignoreCase = true) ||
             it.summary.contains(keyword, ignoreCase = true)
+    }
+
+    pendingDeleteItem?.let { item ->
+        AlertDialog(
+            onDismissRequest = { pendingDeleteItem = null },
+            title = { Text("确认删除收藏？") },
+            text = { Text("将删除收藏“${item.title}”，删除后无法恢复。") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete(item)
+                        if (expandedId == item.id) expandedId = null
+                        pendingDeleteItem = null
+                    }
+                ) {
+                    Text("确认删除")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { pendingDeleteItem = null }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 
     Column(
@@ -192,7 +218,7 @@ fun SavedReportsScreen(
                             OutlinedButton(onClick = { onCopySummary(item) }, modifier = Modifier.fillMaxWidth()) {
                                 Text("复制收藏摘要")
                             }
-                            OutlinedButton(onClick = { onDelete(item) }, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(onClick = { pendingDeleteItem = item }, modifier = Modifier.fillMaxWidth()) {
                                 Text("删除收藏")
                             }
                         }
