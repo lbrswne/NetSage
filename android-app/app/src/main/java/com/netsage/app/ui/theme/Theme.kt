@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.netsage.app.util.AppearanceSettings
@@ -66,8 +67,8 @@ private val DarkColors = darkColorScheme(
 )
 
 private fun scaleText(style: TextStyle, scale: Float): TextStyle {
-    val fontSize = if (style.fontSize.isSpecified) style.fontSize * scale else style.fontSize
-    val lineHeight = if (style.lineHeight.isSpecified) style.lineHeight * scale else style.lineHeight
+    val fontSize = if (style.fontSize != TextUnit.Unspecified) style.fontSize * scale else style.fontSize
+    val lineHeight = if (style.lineHeight != TextUnit.Unspecified) style.lineHeight * scale else style.lineHeight
     return style.copy(fontSize = fontSize, lineHeight = lineHeight)
 }
 
