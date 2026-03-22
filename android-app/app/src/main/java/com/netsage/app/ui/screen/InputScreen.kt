@@ -1,5 +1,6 @@
 package com.netsage.app.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,9 +20,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun InputScreen(
     onDiagnose: (String) -> Unit,
-    onFillSample: (String) -> Unit = {}
+    initialText: String = "",
+    onFillSample: (String) -> Unit = {},
+    onOpenUserAgreement: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
+    onBackHome: () -> Unit = {},
 ) {
-    val logText = remember { mutableStateOf("") }
+    val logText = remember(initialText) { mutableStateOf(initialText) }
 
     Column(
         modifier = Modifier
@@ -53,6 +58,30 @@ fun InputScreen(
             Button(onClick = { onDiagnose(logText.value) }, enabled = logText.value.isNotBlank()) {
                 Text("开始诊断")
             }
+            Button(onClick = onBackHome) {
+                Text("首页")
+            }
         }
+
+        Text(
+            "继续使用即表示您已阅读《用户协议》与《隐私政策》",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Text(
+            "查看《用户协议》",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpenUserAgreement() },
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Text(
+            "查看《隐私政策》",
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpenPrivacyPolicy() },
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodySmall,
+        )
     }
 }

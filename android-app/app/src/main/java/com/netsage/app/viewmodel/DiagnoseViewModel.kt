@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 data class DiagnoseUiState(
     val loading: Boolean = false,
     val causes: List<CauseItem> = emptyList(),
+    val inputSummary: String = "",
     val error: String? = null
 )
 
@@ -21,16 +22,17 @@ class DiagnoseViewModel(private val repo: DiagnoseRepository) : ViewModel() {
 
     fun diagnose(logText: String) {
         if (logText.isBlank()) return
-        _uiState.value = DiagnoseUiState(loading = true)
+        val summary = logText.replace("\n", " ").take(80)
+        _uiState.value = DiagnoseUiState(loading = true, inputSummary = summary)
 
         viewModelScope.launch {
             runCatching { repo.diagnose(logText) }
                 .onSuccess { resp ->
-                    _uiState.value = DiagnoseUiState(causes = resp.top_causes)
+                    _uiState.value = DiagnoseUiState(causes = resp.top_causes, inputSummary = summary)
                 }
                 .onFailure { e ->
                     val msg = ErrorMapper.mapMessage(e.message)
-                    _uiState.value = DiagnoseUiState(error = msg)
+                    _uiState.value = DiagnoseUiState(error = msg, inputSummary = summary)
                 }
         }
     }
