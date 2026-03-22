@@ -35,6 +35,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.netsage.app.ui.theme.NetSageHeroGradient
+import com.netsage.app.ui.theme.NetSagePageBackground
+import com.netsage.app.ui.theme.NetSageSoftHighlight
+import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
 
 data class HomeModule(
     val title: String,
@@ -162,7 +166,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF3F7FB))
+            .background(NetSagePageBackground)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -174,11 +178,7 @@ fun HomeScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFF0E1B2D), Color(0xFF163A63), Color(0xFF1C7DA6))
-                        )
-                    )
+                    .background(brush = NetSageHeroGradient)
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
@@ -229,7 +229,7 @@ fun HomeScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(
@@ -265,8 +265,8 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .clickable { onReuseLatestRecord() },
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFEEF7FF)),
-                border = BorderStroke(1.dp, Color(0xFFB4D8F4))
+                colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+                border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -293,9 +293,7 @@ fun HomeScreen(
             items(featured) { module ->
                 FeaturedModuleCard(
                     module = module,
-                    accent = Brush.linearGradient(
-                        colors = listOf(Color(0xFF0F4C81), Color(0xFF1488A7))
-                    )
+                    accent = NetSageHeroGradient
                 )
             }
         }
@@ -314,7 +312,7 @@ fun HomeScreen(
         }
 
         Text(
-            "当前首页为重设计控制台样式，后续可继续把结果页与输入页统一到同一视觉系统。",
+            "当前首页 / 输入页 / 结果页已收口到统一主题令牌，后续可继续把其余页面接入同一视觉系统。",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.align(Alignment.CenterHorizontally)

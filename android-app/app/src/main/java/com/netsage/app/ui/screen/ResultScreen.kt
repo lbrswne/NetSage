@@ -21,10 +21,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.netsage.app.ui.theme.NetSageHeroGradient
+import com.netsage.app.ui.theme.NetSagePageBackground
 import com.netsage.app.model.CauseItem
 import com.netsage.app.model.FaultScenario
 import com.netsage.app.model.TroubleshootingChecklist
@@ -48,7 +49,7 @@ private fun ReportBlock(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Column(
@@ -109,7 +110,7 @@ fun ResultScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF3F7FB))
+            .background(NetSagePageBackground)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -122,9 +123,7 @@ fun ResultScreen(
             Column(
                 modifier = Modifier
                     .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color(0xFF101827), Color(0xFF183A5A), Color(0xFF276A8D))
-                        )
+                        NetSageHeroGradient
                     )
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)

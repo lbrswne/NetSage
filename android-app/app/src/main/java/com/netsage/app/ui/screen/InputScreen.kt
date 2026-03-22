@@ -22,10 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.netsage.app.ui.theme.NetSageHeroGradient
+import com.netsage.app.ui.theme.NetSagePageBackground
+import com.netsage.app.ui.theme.NetSageSoftHighlight
+import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
 
 @Composable
 fun InputScreen(
@@ -41,7 +44,7 @@ fun InputScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF3F7FB))
+            .background(NetSagePageBackground)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -53,11 +56,7 @@ fun InputScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color(0xFF0F1929), Color(0xFF1A3C60), Color(0xFF2383A9))
-                        )
-                    )
+                    .background(NetSageHeroGradient)
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -79,7 +78,7 @@ fun InputScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(
@@ -98,7 +97,7 @@ fun InputScreen(
                 .fillMaxWidth()
                 .weight(1f),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(
@@ -143,8 +142,8 @@ fun InputScreen(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFEEF7FF)),
-            border = BorderStroke(1.dp, Color(0xFFB4D8F4))
+            colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+            border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
         ) {
             Column(
                 modifier = Modifier.padding(14.dp),
