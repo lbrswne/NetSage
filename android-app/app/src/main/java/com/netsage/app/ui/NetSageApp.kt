@@ -20,13 +20,13 @@ import com.netsage.app.model.FaultCategory
 import com.netsage.app.model.FaultScenario
 import com.netsage.app.model.TroubleshootingChecklist
 import com.netsage.app.repo.OfflineKnowledgeRepository
-import com.netsage.app.ui.component.PrivacyConsentDialog
 import com.netsage.app.ui.screen.ChecklistScreen
 import com.netsage.app.ui.screen.HistoryScreen
 import com.netsage.app.ui.screen.HomeModule
 import com.netsage.app.ui.screen.HomeScreen
 import com.netsage.app.ui.screen.InputScreen
 import com.netsage.app.ui.screen.PrivacyDocType
+import com.netsage.app.ui.screen.PrivacyOnboardingScreen
 import com.netsage.app.ui.screen.PrivacyDocumentScreen
 import com.netsage.app.ui.screen.QuickReferenceScreen
 import com.netsage.app.ui.screen.ResultScreen
@@ -141,22 +141,6 @@ fun NetSageApp() {
     var history by remember { mutableStateOf(DiagnoseHistoryStore.load(context)) }
     var savedReports by remember { mutableStateOf(SavedReportStore.load(context)) }
 
-    if (!hasAgreedPrivacy) {
-        PrivacyConsentDialog(
-            onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
-            onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
-            onAgree = {
-                PrivacyPrefs.setAgreed(context, true)
-                hasAgreedPrivacy = true
-            },
-            onReject = {
-                PrivacyPrefs.reset(context)
-                hasAgreedPrivacy = false
-                currentDoc = null
-                activity?.finishAffinity()
-            }
-        )
-    }
 
     val modules = listOf(
         HomeModule("日志诊断", "保留原有核心：粘贴日志得出根因") { state.showInput() },
@@ -172,6 +156,21 @@ fun NetSageApp() {
         currentDoc != null -> PrivacyDocumentScreen(
             type = currentDoc!!,
             onBack = { currentDoc = null }
+        )
+
+        !hasAgreedPrivacy -> PrivacyOnboardingScreen(
+            onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
+            onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
+            onAgree = {
+                PrivacyPrefs.setAgreed(context, true)
+                hasAgreedPrivacy = true
+            },
+            onReject = {
+                PrivacyPrefs.reset(context)
+                hasAgreedPrivacy = false
+                currentDoc = null
+                activity?.finishAffinity()
+            }
         )
 
         state.page == AppPage.HOME -> HomeScreen(
