@@ -5,7 +5,7 @@ import android.content.Context
 private const val PRIVACY_PREFS = "netsage_privacy_prefs"
 private const val KEY_PRIVACY_VERSION = "privacy_version"
 private const val LEGACY_KEY_PRIVACY_AGREED = "privacy_agreed"
-private const val CURRENT_PRIVACY_VERSION = 2
+private const val CURRENT_PRIVACY_VERSION = 3
 
 object PrivacyPrefs {
     fun hasAgreed(context: Context): Boolean {
