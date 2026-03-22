@@ -138,7 +138,8 @@ fun NetSageApp() {
                             id = System.currentTimeMillis(),
                             title = top.name,
                             summary = top.fix,
-                            createdAt = System.currentTimeMillis()
+                            createdAt = System.currentTimeMillis(),
+                            inputText = state.draftInput
                         )
                     )
                     savedReports = SavedReportStore.load(context)
@@ -197,6 +198,9 @@ fun NetSageApp() {
         state.page == AppPage.SAVED_REPORTS -> SavedReportsScreen(
             items = savedReports,
             selectedId = state.selectedSavedReportId,
+            onReuse = { item ->
+                state.showInput(item.inputText.ifBlank { item.summary })
+            },
             onBack = { state.showHome() }
         )
     }

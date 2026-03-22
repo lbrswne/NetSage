@@ -58,5 +58,6 @@ data class SavedReportItem(
     val id: Long,
     val title: String,
     val summary: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val inputText: String = ""
 )

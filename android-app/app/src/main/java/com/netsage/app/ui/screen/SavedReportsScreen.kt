@@ -29,6 +29,7 @@ import java.util.Locale
 fun SavedReportsScreen(
     items: List<SavedReportItem>,
     onBack: () -> Unit,
+    onReuse: (SavedReportItem) -> Unit,
     selectedId: Long? = null,
 ) {
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
@@ -91,6 +92,14 @@ fun SavedReportsScreen(
                             Text("• 标题：${item.title}", style = MaterialTheme.typography.bodySmall)
                             Text("• 摘要：${item.summary}", style = MaterialTheme.typography.bodySmall)
                             Text("• 收藏时间：${formatter.format(Date(item.createdAt))}", style = MaterialTheme.typography.bodySmall)
+                            if (item.inputText.isNotBlank()) {
+                                Button(
+                                    onClick = { onReuse(item) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("回填到输入框")
+                                }
+                            }
                         }
                         Button(
                             onClick = { expandedId = if (expanded) null else item.id },
