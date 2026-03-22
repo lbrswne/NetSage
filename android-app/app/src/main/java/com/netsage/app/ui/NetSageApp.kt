@@ -178,6 +178,7 @@ fun NetSageApp() {
             modules = modules,
             latestRecordSummary = history.firstOrNull()?.let { "${it.inputSummary} → ${it.resultSummary}" },
             savedReportCount = savedReports.size,
+            historyCount = history.size,
             onQuickOpenInput = { state.showInput() },
             onQuickOpenHistory = { state.page = AppPage.HISTORY },
             onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
