@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,34 +90,6 @@ private fun OverviewCard(stat: OverviewStat) {
 }
 
 @Composable
-private fun FeaturedModuleCard(module: HomeModule, accent: Brush) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(156.dp)
-            .clickable { module.onClick() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(accent)
-                .padding(18.dp)
-        ) {
-            Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-                Text("核心入口", color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelLarge)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(module.title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text(module.desc, color = Color.White.copy(alpha = 0.86f), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun UtilityModuleCard(module: HomeModule) {
     Card(
         modifier = Modifier
@@ -156,8 +127,7 @@ fun HomeScreen(
     onOpenUserAgreement: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
 ) {
-    val featured = modules.take(2)
-    val others = modules.drop(2)
+    val allModules = modules
     val overviewStats = listOf(
         OverviewStat("收藏诊断", savedReportCount.toString(), if (savedReportCount > 0) "可回看重点结果" else "尚未收藏结果"),
         OverviewStat("历史记录", historyCount.toString(), if (historyCount > 0) "支持继续回填分析" else "等待首次诊断沉淀"),
@@ -282,23 +252,7 @@ fun HomeScreen(
             }
         }
 
-        Text("核心功能", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(top = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.height(168.dp)
-        ) {
-            items(featured) { module ->
-                FeaturedModuleCard(
-                    module = module,
-                    accent = NetSageHeroGradient
-                )
-            }
-        }
-
-        Text("工具与记录", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text("功能入口", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(top = 2.dp, bottom = 4.dp),
@@ -306,7 +260,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(others) { module ->
+            items(allModules) { module ->
                 UtilityModuleCard(module)
             }
         }
