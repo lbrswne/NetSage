@@ -289,7 +289,17 @@ fun NetSageApp(
         state.page == AppPage.SCENARIO_LIBRARY -> ScenarioLibraryScreen(
             scenarios = OfflineKnowledgeRepository.scenarios,
             highlightedId = state.highlightedScenarioId,
-            onBack = { state.showHome() }
+            onBack = { state.showHome() },
+            onUseScenario = { scenario ->
+                val draft = buildString {
+                    appendLine("场景：${scenario.title}")
+                    appendLine("分类：${scenario.category.label}")
+                    appendLine("典型现象：${scenario.symptoms}")
+                    appendLine("建议先排查：${scenario.checks.joinToString("；")}")
+                    appendLine("修复提示：${scenario.fixHints.joinToString("；")}")
+                }
+                state.showInput(draft)
+            }
         )
 
         state.page == AppPage.SAMPLE_CENTER -> SampleCenterScreen(

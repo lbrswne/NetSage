@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +44,7 @@ fun ScenarioLibraryScreen(
     scenarios: List<FaultScenario>,
     onBack: () -> Unit,
     highlightedId: String? = null,
+    onUseScenario: (FaultScenario) -> Unit = {},
 ) {
     var current by remember { mutableStateOf<FaultCategory?>(null) }
     var keyword by remember { mutableStateOf("") }
@@ -136,6 +138,12 @@ fun ScenarioLibraryScreen(
                 Text("热门场景", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 hotScenarios.forEachIndexed { index, item ->
                     Text("${index + 1}. [${item.category.label}] ${item.title}", style = MaterialTheme.typography.bodySmall)
+                    OutlinedButton(
+                        onClick = { onUseScenario(item) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("用这个场景去诊断")
+                    }
                 }
             }
         }
@@ -236,13 +244,21 @@ fun ScenarioLibraryScreen(
                             Text("排查：${item.checks.joinToString("；")}", style = MaterialTheme.typography.bodySmall)
                             Text("修复：${item.fixHints.joinToString("；")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        OutlinedButton(
-                            onClick = {
-                                if (expanded) expandedIds.remove(item.id) else expandedIds.add(item.id)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(if (expanded) "收起详情" else "展开详情")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = { onUseScenario(item) },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("回填并诊断")
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    if (expanded) expandedIds.remove(item.id) else expandedIds.add(item.id)
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(if (expanded) "收起详情" else "展开详情")
+                            }
                         }
                     }
                 }
