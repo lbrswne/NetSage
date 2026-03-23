@@ -234,6 +234,7 @@ fun ResultScreen(
     onSaveReport: () -> Unit,
     onBack: () -> Unit,
     onCopyReport: () -> Unit = {},
+    onCopyIncidentBrief: () -> Unit = {},
     onExportActionPlan: () -> Unit = {}
 ) {
     val top = causes.firstOrNull()
@@ -403,8 +404,13 @@ fun ResultScreen(
                 Text("复制报告")
             }
         }
-        OutlinedButton(onClick = onExportActionPlan, modifier = Modifier.fillMaxWidth()) {
-            Text("导出下一步行动单")
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = onCopyIncidentBrief, modifier = Modifier.weight(1f)) {
+                Text("复制故障简报")
+            }
+            OutlinedButton(onClick = onExportActionPlan, modifier = Modifier.weight(1f)) {
+                Text("导出行动单")
+            }
         }
     }
 }

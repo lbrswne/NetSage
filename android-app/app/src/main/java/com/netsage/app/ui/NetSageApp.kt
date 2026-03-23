@@ -285,6 +285,20 @@ fun NetSageApp(
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-report", report))
                 Toast.makeText(context, "报告已复制", Toast.LENGTH_SHORT).show()
             },
+            onCopyIncidentBrief = {
+                val top = state.causes.firstOrNull()
+                val brief = buildString {
+                    appendLine("NetSage 故障事件简报")
+                    appendLine("主判断：${top?.name ?: "暂无"}")
+                    appendLine("置信度：${top?.let { "${(it.confidence * 100).toInt()}%" } ?: "暂无"}")
+                    appendLine("影响范围：${top?.evidence?.firstOrNull() ?: "待补充"}")
+                    appendLine("建议处置：${top?.fix ?: "待补充"}")
+                    appendLine("时间：${System.currentTimeMillis()}")
+                }
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-incident-brief", brief))
+                Toast.makeText(context, "故障简报已复制", Toast.LENGTH_SHORT).show()
+            },
             onExportActionPlan = {
                 val top = state.causes.firstOrNull()
                 val checklists = recommendChecklists(state.causes)
