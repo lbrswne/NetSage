@@ -1,6 +1,7 @@
 package com.netsage.app.ui
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.netsage.app.model.CauseItem
@@ -15,6 +16,7 @@ class AppState {
     var highlightedChecklistId by mutableStateOf<String?>(null)
     var selectedSavedReportId by mutableStateOf<Long?>(null)
     var favoriteScenarioIds by mutableStateOf(setOf<String>())
+    val resultTaskStatuses = mutableStateMapOf<Int, String>()
 
     fun showInput(prefill: String = draftInput) {
         draftInput = prefill
@@ -22,6 +24,7 @@ class AppState {
     }
 
     fun showResult(newCauses: List<CauseItem>) {
+        if (causes != newCauses) resultTaskStatuses.clear()
         causes = newCauses
         page = AppPage.RESULT
     }

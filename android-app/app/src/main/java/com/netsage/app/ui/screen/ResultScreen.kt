@@ -238,6 +238,8 @@ fun ResultScreen(
     causes: List<CauseItem>,
     recommendedChecklists: List<TroubleshootingChecklist> = emptyList(),
     recommendedScenarios: List<FaultScenario> = emptyList(),
+    savedTaskStatuses: Map<Int, String> = emptyMap(),
+    onTaskStatusChange: (Int, String) -> Unit = { _, _ -> },
     onOpenChecklists: (String?) -> Unit,
     onOpenScenarios: (String?) -> Unit,
     onSaveReport: () -> Unit,
@@ -261,9 +263,11 @@ fun ResultScreen(
         ?: "当前暂无可用诊断结果。"
     val actionSteps = buildActionSteps(top, recommendedChecklists, recommendedScenarios)
     val playbookBranches = buildPlaybookBranches(top, recommendedChecklists, recommendedScenarios)
-    val taskStatuses = remember(actionSteps) {
+    val taskStatuses = remember(actionSteps, savedTaskStatuses) {
         mutableStateMapOf<Int, TaskStatus>().apply {
-            actionSteps.indices.forEach { idx -> put(idx, TaskStatus.TODO) }
+            actionSteps.indices.forEach { idx ->
+                put(idx, savedTaskStatuses[idx]?.let { name -> TaskStatus.entries.firstOrNull { it.name == name } } ?: TaskStatus.TODO)
+            }
         }
     }
     val (fitText, notFitText) = buildApplicabilityText(top)
@@ -352,7 +356,10 @@ fun ResultScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                             TaskStatus.entries.forEach { status ->
                                 AssistChip(
-                                    onClick = { taskStatuses[index] = status },
+                                    onClick = {
+                                        taskStatuses[index] = status
+                                        onTaskStatusChange(index, status.name)
+                                    },
                                     label = { Text(status.label) },
                                     border = if (taskStatuses[index] == status) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
                                 )

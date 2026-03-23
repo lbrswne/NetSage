@@ -259,6 +259,8 @@ fun NetSageApp(
             causes = state.causes,
             recommendedChecklists = recommendChecklists(state.causes),
             recommendedScenarios = recommendScenarios(state.causes),
+            savedTaskStatuses = state.resultTaskStatuses,
+            onTaskStatusChange = { idx, status -> state.resultTaskStatuses[idx] = status },
             onOpenChecklists = { highlightedId -> state.showChecklists(highlightedId) },
             onOpenScenarios = { highlightedId -> state.showScenarioLibrary(highlightedId) },
             onSaveReport = {
