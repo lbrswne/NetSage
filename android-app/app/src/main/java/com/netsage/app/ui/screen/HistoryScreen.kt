@@ -6,12 +6,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,6 +59,7 @@ private fun HistorySummaryCard(title: String, value: String, hint: String) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HistoryScreen(
     records: List<DiagnoseHistoryRecord>,
@@ -65,12 +69,21 @@ fun HistoryScreen(
 ) {
     val formatter = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
     var keyword by remember { mutableStateOf("") }
+    var quickFilter by remember { mutableStateOf("全部") }
     var showClearConfirm by remember { mutableStateOf(false) }
     val shown = records.filter {
-        keyword.isBlank() ||
+        val keywordMatch = keyword.isBlank() ||
             it.inputSummary.contains(keyword, ignoreCase = true) ||
             it.resultSummary.contains(keyword, ignoreCase = true) ||
             it.inputText.contains(keyword, ignoreCase = true)
+        val filterMatch = when (quickFilter) {
+            "高优先级" -> listOf("85%", "90%", "95%", "100%").any { tag -> it.resultSummary.contains(tag) }
+            "DNS" -> it.resultSummary.contains("DNS", ignoreCase = true) || it.inputSummary.contains("dns", ignoreCase = true)
+            "TLS" -> it.resultSummary.contains("TLS", ignoreCase = true) || it.inputSummary.contains("tls", ignoreCase = true)
+            "HTTP" -> it.resultSummary.contains("HTTP", ignoreCase = true) || it.inputSummary.contains("http", ignoreCase = true) || it.resultSummary.contains("502") || it.resultSummary.contains("504")
+            else -> true
+        }
+        keywordMatch && filterMatch
     }
 
     if (showClearConfirm) {
@@ -155,6 +168,14 @@ fun HistoryScreen(
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp)
                 )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("全部", "高优先级", "DNS", "TLS", "HTTP").forEach { item ->
+                        AssistChip(onClick = { quickFilter = item }, label = { Text(item) })
+                    }
+                }
                 OutlinedButton(
                     onClick = { showClearConfirm = true },
                     modifier = Modifier.fillMaxWidth(),
