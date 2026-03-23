@@ -182,6 +182,26 @@ private fun ReportBlock(
 }
 
 @Composable
+private fun ConfidenceBar(confidence: Double) {
+    val pct = confidence.coerceIn(0.0, 1.0).toFloat()
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        repeat(10) { i ->
+            val active = i < (pct * 10).toInt().coerceAtLeast(1)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .padding(vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
 private fun CandidateCauseCard(item: CauseItem, index: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -195,6 +215,7 @@ private fun CandidateCauseCard(item: CauseItem, index: Int) {
         ) {
             Text("Top$index · ${item.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text("置信度 ${(item.confidence * 100).toInt()}%", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            ConfidenceBar(item.confidence)
             Text("建议：${item.fix}", style = MaterialTheme.typography.bodyMedium)
             if (item.evidence.isNotEmpty()) {
                 Text("证据：${item.evidence.joinToString("；")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
