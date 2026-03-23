@@ -36,6 +36,7 @@ data class ReviewShotStep(
 fun ReviewShotsGuideScreen(
     onBack: () -> Unit,
     steps: List<ReviewShotStep>,
+    onCopyShotScript: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -65,6 +66,10 @@ fun ReviewShotsGuideScreen(
                 Text("审核截图向导", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text("按 5 步完成截图采集，每步可一键跳转目标页面。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
             }
+        }
+
+        OutlinedButton(onClick = onCopyShotScript, modifier = Modifier.fillMaxWidth()) {
+            Text("复制截图顺序脚本")
         }
 
         steps.forEachIndexed { index, step ->

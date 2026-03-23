@@ -436,7 +436,20 @@ fun NetSageApp(
                 },
                 ReviewShotStep("场景库与热门场景", "截图分类计数与热门场景一键诊断按钮。", "跳转场景库") { state.showScenarioLibrary() },
                 ReviewShotStep("审核演示与新增清单", "截图审核演示页/版本新增页作为收尾证明。", "跳转审核演示") { state.page = AppPage.REVIEW_DEMO },
-            )
+            ),
+            onCopyShotScript = {
+                val script = """
+                    NetSage 审核截图顺序（建议）
+                    1) 首页：功能厚度卡片 + 模块入口
+                    2) 输入页：随机样例 / 一键清空 / 质量评分
+                    3) 结果页：风险等级 / 影响范围 / 处置剧本 / 应急指挥卡
+                    4) 场景库：分类计数 / 热门场景 / 层级筛选
+                    5) 审核演示页：一键演示 + 核验摘要复制
+                """.trimIndent()
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-review-shot-script", script))
+                Toast.makeText(context, "截图顺序脚本已复制", Toast.LENGTH_SHORT).show()
+            }
         )
 
         state.page == AppPage.FEATURE_SHOWCASE -> FeatureShowcaseScreen(
