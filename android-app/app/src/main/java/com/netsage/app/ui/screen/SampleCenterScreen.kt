@@ -91,6 +91,22 @@ fun SampleCenterScreen(
                     }
                 }
                 Text("当前显示 ${shown.size} 条样例", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { shown.randomOrNull()?.let { onUseSample(it.content) } },
+                        modifier = Modifier.weight(1f),
+                        enabled = shown.isNotEmpty()
+                    ) {
+                        Text("抽一条样例")
+                    }
+                    OutlinedButton(
+                        onClick = { samples.randomOrNull()?.let { onUseSample(it.content) } },
+                        modifier = Modifier.weight(1f),
+                        enabled = samples.isNotEmpty()
+                    ) {
+                        Text("全库随机")
+                    }
+                }
             }
         }
 
