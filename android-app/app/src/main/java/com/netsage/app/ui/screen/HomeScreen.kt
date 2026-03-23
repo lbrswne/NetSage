@@ -212,7 +212,10 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text("常用操作", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         AssistChip(onClick = onQuickOpenInput, label = { Text("去诊断") })
                         AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
                         AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
@@ -250,7 +253,10 @@ fun HomeScreen(
                 ) {
                     Text("新手引导", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("推荐路径：先用样例体验 → 再贴真实日志 → 查看结果页“下一步行动”执行排查。", style = MaterialTheme.typography.bodySmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Button(onClick = onQuickOpenSamples) { Text("先看样例") }
                         OutlinedButton(onClick = onQuickOpenScenarios) { Text("看场景库") }
                         OutlinedButton(onClick = onQuickOpenInput) { Text("直接诊断") }
