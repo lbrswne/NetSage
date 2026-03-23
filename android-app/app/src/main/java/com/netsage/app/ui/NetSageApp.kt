@@ -308,6 +308,14 @@ fun NetSageApp(
         state.page == AppPage.SCENARIO_LIBRARY -> ScenarioLibraryScreen(
             scenarios = OfflineKnowledgeRepository.scenarios,
             highlightedId = state.highlightedScenarioId,
+            favoriteIds = state.favoriteScenarioIds,
+            onToggleFavorite = { id ->
+                state.favoriteScenarioIds = if (id in state.favoriteScenarioIds) {
+                    state.favoriteScenarioIds - id
+                } else {
+                    state.favoriteScenarioIds + id
+                }
+            },
             onBack = { state.showHome() },
             onUseScenario = { scenario ->
                 val draft = buildString {

@@ -14,6 +14,7 @@ class AppState {
     var highlightedScenarioId by mutableStateOf<String?>(null)
     var highlightedChecklistId by mutableStateOf<String?>(null)
     var selectedSavedReportId by mutableStateOf<Long?>(null)
+    var favoriteScenarioIds by mutableStateOf(setOf<String>())
 
     fun showInput(prefill: String = draftInput) {
         draftInput = prefill

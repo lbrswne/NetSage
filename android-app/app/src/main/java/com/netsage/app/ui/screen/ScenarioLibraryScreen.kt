@@ -44,6 +44,8 @@ fun ScenarioLibraryScreen(
     scenarios: List<FaultScenario>,
     onBack: () -> Unit,
     highlightedId: String? = null,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: (String) -> Unit = {},
     onUseScenario: (FaultScenario) -> Unit = {},
     onRunReviewDemo: (FaultScenario) -> Unit = {},
 ) {
@@ -68,7 +70,7 @@ fun ScenarioLibraryScreen(
             it.title.contains(keyword, ignoreCase = true) ||
             it.symptoms.contains(keyword, ignoreCase = true) ||
             it.fixHints.any { hint -> hint.contains(keyword, ignoreCase = true) }
-    }
+    }.sortedBy { if (it.id in favoriteIds) 0 else 1 }
 
     Column(
         modifier = Modifier
@@ -261,7 +263,12 @@ fun ScenarioLibraryScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("[${item.category.label}] ${item.title}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("[${item.category.label}] ${item.title}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            OutlinedButton(onClick = { onToggleFavorite(item.id) }) {
+                                Text(if (item.id in favoriteIds) "取消收藏" else "收藏")
+                            }
+                        }
                         if (item.layers.isNotEmpty()) {
                             Text("层级：${item.layers.joinToString(" / ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                         }
