@@ -140,6 +140,13 @@ fun HomeScreen(
         "工具能力" to 4,
         "审核可见" to 5,
     )
+    val releaseProgress = listOf(
+        "输入质量评分与补全清单" to true,
+        "结果页处置剧本与应急指挥卡" to true,
+        "场景库层级筛选与热门场景" to true,
+        "审核演示/截图向导/提审文案复制" to true,
+        "工具箱命令+判读提示复制" to true,
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -248,6 +255,21 @@ fun HomeScreen(
                             }
                         }
                     }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("版本增强进度", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            releaseProgress.forEach { (item, done) ->
+                                Text("${if (done) "✅" else "⬜"} $item", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("查看新增功能") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })
