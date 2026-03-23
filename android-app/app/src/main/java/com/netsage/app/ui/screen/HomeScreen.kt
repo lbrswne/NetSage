@@ -221,6 +221,7 @@ fun HomeScreen(
                         AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("跑样例") })
                         AssistChip(onClick = onQuickOpenScenarios, label = { Text("场景库") })
+                        AssistChip(onClick = onOpenAppearanceSettings, label = { Text("显示与风格") })
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         OutlinedButton(onClick = onOpenUserAgreement, modifier = Modifier.weight(1f)) {
@@ -230,12 +231,7 @@ fun HomeScreen(
                             Text("隐私政策")
                         }
                     }
-                    Text(
-                        "显示与风格",
-                        modifier = Modifier.clickable { onOpenAppearanceSettings() },
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+
                 }
             }
         }
