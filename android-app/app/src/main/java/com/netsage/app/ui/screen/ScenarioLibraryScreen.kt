@@ -49,8 +49,10 @@ fun ScenarioLibraryScreen(
 ) {
     var current by remember { mutableStateOf<FaultCategory?>(null) }
     var keyword by remember { mutableStateOf("") }
+    var currentLayer by remember { mutableStateOf<String?>(null) }
     val expandedIds = remember { mutableStateListOf<String>() }
     val presetTags = listOf("校园网", "宿舍", "Wi-Fi", "热点", "公司内网", "家庭宽带", "DNS", "TLS", "HTTP", "丢包")
+    val layerTags = scenarios.flatMap { it.layers }.distinct()
     val categoryCounts = FaultCategory.entries.associateWith { category -> scenarios.count { it.category == category } }
     val hotScenarios = scenarios
         .sortedByDescending { scenario ->
@@ -60,7 +62,8 @@ fun ScenarioLibraryScreen(
         .take(3)
 
     val filteredByCategory = current?.let { c -> scenarios.filter { it.category == c } } ?: scenarios
-    val shown = filteredByCategory.filter {
+    val filteredByLayer = currentLayer?.let { layer -> filteredByCategory.filter { it.layers.contains(layer) } } ?: filteredByCategory
+    val shown = filteredByLayer.filter {
         keyword.isBlank() ||
             it.title.contains(keyword, ignoreCase = true) ||
             it.symptoms.contains(keyword, ignoreCase = true) ||
@@ -197,8 +200,19 @@ fun ScenarioLibraryScreen(
                         AssistChip(onClick = { keyword = tag }, label = { Text(tag) })
                     }
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AssistChip(onClick = { currentLayer = null }, label = { Text("全部层级") })
+                    layerTags.forEach { layer ->
+                        AssistChip(onClick = { currentLayer = layer }, label = { Text(layer) })
+                    }
+                }
                 Text(
-                    "当前筛出 ${shown.size} 项。先按分类缩小范围，再用场景标签快速定位真实网络环境。",
+                    "当前筛出 ${shown.size} 项。先按分类，再按网络层级（校园/宿舍/家宽/企业/热点）筛选。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -248,6 +262,9 @@ fun ScenarioLibraryScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text("[${item.category.label}] ${item.title}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        if (item.layers.isNotEmpty()) {
+                            Text("层级：${item.layers.joinToString(" / ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                        }
                         Text("现象：${item.symptoms}", style = MaterialTheme.typography.bodyMedium)
                         if (expanded) {
                             Text("排查：${item.checks.joinToString("；")}", style = MaterialTheme.typography.bodySmall)

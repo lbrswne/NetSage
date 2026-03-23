@@ -14,7 +14,8 @@ data class FaultScenario(
     val title: String,
     val symptoms: String,
     val checks: List<String>,
-    val fixHints: List<String>
+    val fixHints: List<String>,
+    val layers: List<String> = emptyList()
 )
 
 enum class QuickRefCategory(val label: String) {

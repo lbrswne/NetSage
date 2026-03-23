@@ -15,7 +15,8 @@ object OfflineKnowledgeRepository {
             title = "域名解析 NXDOMAIN",
             symptoms = "nslookup 返回 NXDOMAIN 或 server can't find",
             checks = listOf("检查域名是否拼写错误", "切换公共 DNS 复测", "排查本地 hosts 污染"),
-            fixHints = listOf("优先恢复权威解析记录", "客户端临时更换 DNS 作为绕行")
+            fixHints = listOf("优先恢复权威解析记录", "客户端临时更换 DNS 作为绕行"),
+            layers = listOf("校园网", "企业内网", "家庭宽带")
         ),
         FaultScenario(
             id = "conn_no_route",
@@ -23,7 +24,8 @@ object OfflineKnowledgeRepository {
             title = "No route to host / 网关不可达",
             symptoms = "ping 提示 destination host unreachable 或 no route",
             checks = listOf("确认网关 IP 与网段", "traceroute 定位断点", "检查交换机/VLAN"),
-            fixHints = listOf("补齐路由项", "修正网关与三层接口配置")
+            fixHints = listOf("补齐路由项", "修正网关与三层接口配置"),
+            layers = listOf("企业内网", "校园网")
         ),
         FaultScenario(
             id = "tls_handshake",
@@ -31,7 +33,8 @@ object OfflineKnowledgeRepository {
             title = "TLS 握手失败",
             symptoms = "handshake_failure、certificate unknown、protocol_version",
             checks = listOf("核查证书链完整性", "检查系统时间漂移", "确认 TLS 版本兼容"),
-            fixHints = listOf("更新证书链", "统一启用 TLS1.2+", "排查中间盒劫持")
+            fixHints = listOf("更新证书链", "统一启用 TLS1.2+", "排查中间盒劫持"),
+            layers = listOf("校园网", "企业内网", "家庭宽带")
         ),
         FaultScenario(
             id = "http_502",
@@ -39,7 +42,8 @@ object OfflineKnowledgeRepository {
             title = "HTTP 502/504 网关错误",
             symptoms = "业务域名间歇返回 502/504",
             checks = listOf("区分网关层与上游应用层", "查看 upstream 超时配置", "比对健康检查结果"),
-            fixHints = listOf("扩大超时与连接池", "修复后端实例故障")
+            fixHints = listOf("扩大超时与连接池", "修复后端实例故障"),
+            layers = listOf("企业内网", "校园网")
         ),
         FaultScenario(
             id = "packet_loss_wireless",
@@ -47,7 +51,53 @@ object OfflineKnowledgeRepository {
             title = "无线网络高丢包",
             symptoms = "ping 波动大且伴随 5%+ 丢包",
             checks = listOf("同地点多终端对比", "切换 2.4G/5G 信道", "排查干扰源"),
-            fixHints = listOf("优化 AP 位置", "降低干扰并调整功率")
+            fixHints = listOf("优化 AP 位置", "降低干扰并调整功率"),
+            layers = listOf("宿舍网络", "校园网", "家庭宽带")
+        ),
+        FaultScenario(
+            id = "campus_auth_portal",
+            category = FaultCategory.CONNECTION,
+            title = "校园网认证页循环跳转",
+            symptoms = "登录认证成功后反复跳回 portal 页面，无法访问外网",
+            checks = listOf("清理浏览器缓存与旧会话", "核对学号账号并发登录状态", "检查网卡 DNS 自动获取"),
+            fixHints = listOf("重新认证并断开其他终端", "联系校园网关重置会话"),
+            layers = listOf("校园网")
+        ),
+        FaultScenario(
+            id = "dorm_wifi_isolation",
+            category = FaultCategory.CONNECTION,
+            title = "宿舍 Wi-Fi 可联网但设备互访失败",
+            symptoms = "手机能上网，但电脑无法访问寝室打印机/投屏设备",
+            checks = listOf("确认是否开启 AP 隔离", "检查是否在同一频段/子网", "查看路由器访客网络设置"),
+            fixHints = listOf("关闭客户端隔离", "切回主网络并统一子网段"),
+            layers = listOf("宿舍网络", "家庭宽带")
+        ),
+        FaultScenario(
+            id = "hotspot_nat_issue",
+            category = FaultCategory.HTTP,
+            title = "手机热点可连通但业务接口异常",
+            symptoms = "可打开普通网页，但业务 API 请求频繁超时或 5xx",
+            checks = listOf("对比热点与校园网出口 IP", "检查后端白名单策略", "抓包确认是否被运营商代理干预"),
+            fixHints = listOf("补充热点出口白名单", "改用 TLS 严格校验与备用域名"),
+            layers = listOf("手机热点", "校园网")
+        ),
+        FaultScenario(
+            id = "enterprise_proxy_tls",
+            category = FaultCategory.TLS,
+            title = "企业代理导致 TLS 证书不受信",
+            symptoms = "企业内网访问外部 HTTPS 时提示证书链不受信任",
+            checks = listOf("检查是否有企业代理根证书", "核对终端信任链", "对比直连与代理链路"),
+            fixHints = listOf("统一下发受信根证书", "关键业务域名走直连白名单"),
+            layers = listOf("企业内网")
+        ),
+        FaultScenario(
+            id = "home_router_dns_hijack",
+            category = FaultCategory.DNS,
+            title = "家庭宽带 DNS 劫持",
+            symptoms = "访问正常域名被跳转到广告页或错误站点",
+            checks = listOf("检查路由器 DNS 配置是否被篡改", "比对终端与路由器 DNS", "重置路由器管理密码"),
+            fixHints = listOf("改用可信 DNS", "升级路由器固件并关闭远程管理"),
+            layers = listOf("家庭宽带")
         )
     )
 
