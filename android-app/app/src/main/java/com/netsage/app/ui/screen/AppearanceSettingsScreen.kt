@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.netsage.app.ui.theme.NetSageHeroGradient
 import com.netsage.app.util.AppearanceSettings
 import com.netsage.app.util.FontScaleOption
-import com.netsage.app.util.LayoutDensityOption
 import com.netsage.app.util.ThemeModeOption
 import com.netsage.app.util.ThemeStyleOption
 
@@ -44,7 +43,6 @@ fun AppearanceSettingsScreen(
     onSelectFontScale: (FontScaleOption) -> Unit,
     onSelectThemeStyle: (ThemeStyleOption) -> Unit,
     onSelectThemeMode: (ThemeModeOption) -> Unit,
-    onSelectLayoutDensity: (LayoutDensityOption) -> Unit,
     onResetDefaults: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -75,7 +73,7 @@ fun AppearanceSettingsScreen(
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text("显示与风格", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("支持深色模式、字体、配色与界面紧凑度；修改后会立即生效并自动保存。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+                Text("支持深色模式、字体、配色；修改后会立即生效并自动保存。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
             }
         }
 
@@ -158,25 +156,5 @@ fun AppearanceSettingsScreen(
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("界面密度", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("紧凑模式更密集，舒展模式更易读。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    LayoutDensityOption.entries.forEach { option ->
-                        AssistChip(
-                            onClick = { onSelectLayoutDensity(option) },
-                            label = { Text(option.label) },
-                            border = if (settings.layoutDensity == option) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
-                        )
-                    }
-                }
-            }
-        }
     }
 }

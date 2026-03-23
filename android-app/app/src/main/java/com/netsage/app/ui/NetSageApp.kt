@@ -522,9 +522,6 @@ fun NetSageApp(
             onSelectThemeMode = { option ->
                 onUpdateAppearanceSettings(appearanceSettings.copy(themeMode = option))
             },
-            onSelectLayoutDensity = { option ->
-                onUpdateAppearanceSettings(appearanceSettings.copy(layoutDensity = option))
-            },
             onResetDefaults = {
                 onUpdateAppearanceSettings(AppearanceSettings())
             },
