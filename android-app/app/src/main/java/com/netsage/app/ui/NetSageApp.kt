@@ -29,6 +29,7 @@ import com.netsage.app.ui.screen.HistoryScreen
 import com.netsage.app.ui.screen.HomeModule
 import com.netsage.app.ui.screen.HomeScreen
 import com.netsage.app.ui.screen.InputScreen
+import com.netsage.app.ui.screen.OneTapCheckupScreen
 import com.netsage.app.ui.screen.PrivacyDocType
 import com.netsage.app.ui.screen.PrivacyOnboardingScreen
 import com.netsage.app.ui.screen.PrivacyDocumentScreen
@@ -174,6 +175,7 @@ fun NetSageApp(
 
     val modules = listOf(
         HomeModule("快速诊断", "输入日志快速生成 Top3 根因与下一步行动") { state.showInput() },
+        HomeModule("一键体检", "勾选现象自动生成结构化输入并诊断") { state.page = AppPage.ONE_TAP_CHECKUP },
         HomeModule("故障场景库", "离线按 DNS/连接/TLS/HTTP/丢包分类") { state.showScenarioLibrary() },
         HomeModule("样例中心", "一键使用内置样例日志进行诊断") { state.page = AppPage.SAMPLE_CENTER },
         HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.showChecklists() },
@@ -226,6 +228,14 @@ fun NetSageApp(
             onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
             onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
             onOpenAppearanceSettings = { state.page = AppPage.APPEARANCE_SETTINGS },
+        )
+
+        state.page == AppPage.ONE_TAP_CHECKUP -> OneTapCheckupScreen(
+            onBack = { state.showHome() },
+            onRunCheckup = { payload ->
+                state.draftInput = payload
+                vm.diagnose(payload)
+            }
         )
 
         state.page == AppPage.INPUT -> InputScreen(
