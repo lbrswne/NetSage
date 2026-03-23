@@ -66,13 +66,13 @@ private val DarkColors = darkColorScheme(
     secondary = Color(0xFF8FD4EE)
 )
 
-private fun scaleText(style: TextStyle, scale: Float): TextStyle {
+private fun scaleText(style: TextStyle, scale: Float, lineHeightScale: Float): TextStyle {
     val fontSize = if (style.fontSize != TextUnit.Unspecified) style.fontSize * scale else style.fontSize
-    val lineHeight = if (style.lineHeight != TextUnit.Unspecified) style.lineHeight * scale else style.lineHeight
+    val lineHeight = if (style.lineHeight != TextUnit.Unspecified) style.lineHeight * scale * lineHeightScale else style.lineHeight
     return style.copy(fontSize = fontSize, lineHeight = lineHeight)
 }
 
-private fun buildTypography(scale: Float): Typography {
+private fun buildTypography(scale: Float, lineHeightScale: Float): Typography {
     val base = Typography(
         displayLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
         displayMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Bold, fontSize = 45.sp, lineHeight = 52.sp),
@@ -92,21 +92,21 @@ private fun buildTypography(scale: Float): Typography {
     )
 
     return Typography(
-        displayLarge = scaleText(base.displayLarge, scale),
-        displayMedium = scaleText(base.displayMedium, scale),
-        displaySmall = scaleText(base.displaySmall, scale),
-        headlineLarge = scaleText(base.headlineLarge, scale),
-        headlineMedium = scaleText(base.headlineMedium, scale),
-        headlineSmall = scaleText(base.headlineSmall, scale),
-        titleLarge = scaleText(base.titleLarge, scale),
-        titleMedium = scaleText(base.titleMedium, scale),
-        titleSmall = scaleText(base.titleSmall, scale),
-        bodyLarge = scaleText(base.bodyLarge, scale),
-        bodyMedium = scaleText(base.bodyMedium, scale),
-        bodySmall = scaleText(base.bodySmall, scale),
-        labelLarge = scaleText(base.labelLarge, scale),
-        labelMedium = scaleText(base.labelMedium, scale),
-        labelSmall = scaleText(base.labelSmall, scale)
+        displayLarge = scaleText(base.displayLarge, scale, lineHeightScale),
+        displayMedium = scaleText(base.displayMedium, scale, lineHeightScale),
+        displaySmall = scaleText(base.displaySmall, scale, lineHeightScale),
+        headlineLarge = scaleText(base.headlineLarge, scale, lineHeightScale),
+        headlineMedium = scaleText(base.headlineMedium, scale, lineHeightScale),
+        headlineSmall = scaleText(base.headlineSmall, scale, lineHeightScale),
+        titleLarge = scaleText(base.titleLarge, scale, lineHeightScale),
+        titleMedium = scaleText(base.titleMedium, scale, lineHeightScale),
+        titleSmall = scaleText(base.titleSmall, scale, lineHeightScale),
+        bodyLarge = scaleText(base.bodyLarge, scale, lineHeightScale),
+        bodyMedium = scaleText(base.bodyMedium, scale, lineHeightScale),
+        bodySmall = scaleText(base.bodySmall, scale, lineHeightScale),
+        labelLarge = scaleText(base.labelLarge, scale, lineHeightScale),
+        labelMedium = scaleText(base.labelMedium, scale, lineHeightScale),
+        labelSmall = scaleText(base.labelSmall, scale, lineHeightScale)
     )
 }
 
@@ -118,7 +118,10 @@ fun NetSageTheme(
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColors else buildLightColors(appearanceSettings.themeStyle),
-        typography = buildTypography(appearanceSettings.fontScale.scale),
+        typography = buildTypography(
+            scale = appearanceSettings.fontScale.scale,
+            lineHeightScale = appearanceSettings.layoutDensity.lineHeightScale
+        ),
         content = content
     )
 }

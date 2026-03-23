@@ -195,6 +195,7 @@ fun NetSageApp(
             onQuickOpenInput = { state.showInput() },
             onQuickOpenHistory = { state.page = AppPage.HISTORY },
             onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
+            onQuickOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
             onReuseLatestRecord = {
                 history.firstOrNull()?.let { record ->
                     state.showInput(record.inputText.ifBlank { record.inputSummary })
@@ -214,6 +215,7 @@ fun NetSageApp(
                 vm.diagnose(text)
             },
             initialText = state.draftInput,
+            isLoading = ui.loading,
             onFillSample = {
                 val sample = takeNextSample()
                 state.draftInput = sample
@@ -328,6 +330,15 @@ fun NetSageApp(
             },
             onSelectThemeStyle = { option ->
                 onUpdateAppearanceSettings(appearanceSettings.copy(themeStyle = option))
+            },
+            onSelectThemeMode = { option ->
+                onUpdateAppearanceSettings(appearanceSettings.copy(themeMode = option))
+            },
+            onSelectLayoutDensity = { option ->
+                onUpdateAppearanceSettings(appearanceSettings.copy(layoutDensity = option))
+            },
+            onResetDefaults = {
+                onUpdateAppearanceSettings(AppearanceSettings())
             },
             onBack = { state.showHome() }
         )

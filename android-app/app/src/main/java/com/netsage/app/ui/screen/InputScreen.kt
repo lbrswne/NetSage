@@ -18,6 +18,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -62,6 +63,7 @@ private fun buildInputQualityHint(text: String): String {
 fun InputScreen(
     onDiagnose: (String) -> Unit,
     initialText: String = "",
+    isLoading: Boolean = false,
     onFillSample: () -> String = { "" },
     onOpenUserAgreement: () -> Unit = {},
     onOpenPrivacyPolicy: () -> Unit = {},
@@ -83,6 +85,12 @@ fun InputScreen(
         )
     )
     val qualityHint = buildInputQualityHint(logText.value)
+    val faultTypeGuides = listOf(
+        "DNS解析" to "可补充 nslookup/dig 结果、DNS 服务器地址、是否全员受影响",
+        "TLS证书" to "可补充证书报错原文、系统时间、客户端/服务端 TLS 版本",
+        "网关502/504" to "可补充网关层日志、上游服务状态、是否与发布变更同时间",
+        "连接超时" to "可补充目标 IP:Port、ping/mtr/traceroute 结果、网络环境"
+    )
 
     Column(
         modifier = Modifier
@@ -166,15 +174,31 @@ fun InputScreen(
                                 logText.value = sample
                             }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("填充样例")
+                        Text("随机样例")
                     }
-                    Button(
-                        onClick = { onDiagnose(logText.value) },
-                        enabled = logText.value.isNotBlank(),
+                    OutlinedButton(
+                        onClick = { logText.value = "" },
+                        enabled = logText.value.isNotBlank() && !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
+                        Text("一键清空")
+                    }
+                }
+                Button(
+                    onClick = { onDiagnose(logText.value) },
+                    enabled = logText.value.isNotBlank() && !isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 8.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Text("诊断中，请稍候…")
+                    } else {
                         Text("开始诊断")
                     }
                 }
@@ -205,6 +229,23 @@ fun InputScreen(
                             label = { Text(template.label) }
                         )
                     }
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("故障类型引导", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                faultTypeGuides.forEach { (title, guide) ->
+                    Text("• $title：$guide", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

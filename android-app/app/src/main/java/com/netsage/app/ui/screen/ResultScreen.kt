@@ -75,6 +75,18 @@ private fun buildActionSteps(
     return steps
 }
 
+private fun buildImpactScope(top: CauseItem?): String {
+    if (top == null) return "暂无评估"
+    val text = (top.name + " " + top.evidence.joinToString(" ")).lowercase()
+    return when {
+        listOf("dns", "解析", "nxdomain").any { text.contains(it) } -> "影响范围通常可扩散到同一 DNS 出口下的多个终端，建议优先确认是否为全局解析问题。"
+        listOf("tls", "certificate", "证书", "handshake").any { text.contains(it) } -> "影响范围通常集中在特定域名或特定客户端版本，需重点核对证书链与系统时间。"
+        listOf("502", "504", "gateway", "upstream", "网关").any { text.contains(it) } -> "影响范围常覆盖同一入口流量，可能导致某业务接口整体不可用或高延迟。"
+        listOf("timeout", "unreachable", "route", "连接").any { text.contains(it) } -> "影响范围依赖链路拓扑，可能为局部网段或跨网段通信受阻。"
+        else -> "当前影响范围不明确，建议补充受影响用户比例、网络区域与复现时间窗口。"
+    }
+}
+
 private fun buildApplicabilityText(top: CauseItem?): Pair<String, String> {
     if (top == null) return "适用场景" to "当前暂无可判断内容。"
 
@@ -174,6 +186,7 @@ fun ResultScreen(
         ?: "当前暂无可用诊断结果。"
     val actionSteps = buildActionSteps(top, recommendedChecklists, recommendedScenarios)
     val (fitText, notFitText) = buildApplicabilityText(top)
+    val impactScope = buildImpactScope(top)
 
     Column(
         modifier = Modifier
@@ -220,6 +233,8 @@ fun ResultScreen(
             ReportBlock("问题概览") {
                 Text("最可能问题：${it.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text("建议优先处理：${it.fix}", style = MaterialTheme.typography.bodyMedium)
+                Text("风险等级：$severity", style = MaterialTheme.typography.bodyMedium, color = severityColor)
+                Text("影响范围：$impactScope", style = MaterialTheme.typography.bodySmall)
                 Text("处理策略：先围绕主判断做首轮排查，再根据验证结果决定是否切换到 Top2 / Top3。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

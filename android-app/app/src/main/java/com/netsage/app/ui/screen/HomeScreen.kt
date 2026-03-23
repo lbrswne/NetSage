@@ -117,6 +117,7 @@ fun HomeScreen(
     onQuickOpenInput: () -> Unit,
     onQuickOpenHistory: () -> Unit,
     onQuickOpenReference: () -> Unit,
+    onQuickOpenSamples: () -> Unit,
     onReuseLatestRecord: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenUserAgreement: () -> Unit,
@@ -212,6 +213,7 @@ fun HomeScreen(
                         AssistChip(onClick = onQuickOpenInput, label = { Text("去诊断") })
                         AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
                         AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
+                        AssistChip(onClick = onQuickOpenSamples, label = { Text("跑样例") })
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(
@@ -232,6 +234,27 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodySmall,
                         )
+                    }
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("新手引导", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("推荐路径：先用样例体验 → 再贴真实日志 → 查看结果页“下一步行动”执行排查。", style = MaterialTheme.typography.bodySmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onQuickOpenSamples) { Text("先看样例") }
+                        OutlinedButton(onClick = onQuickOpenInput) { Text("直接诊断") }
                     }
                 }
             }

@@ -15,15 +15,30 @@ enum class ThemeStyleOption(val label: String) {
     SUNSET("暖日橙")
 }
 
+enum class ThemeModeOption(val label: String) {
+    SYSTEM("跟随系统"),
+    LIGHT("浅色"),
+    DARK("深色")
+}
+
+enum class LayoutDensityOption(val label: String, val lineHeightScale: Float) {
+    COMFORTABLE("舒展", 1.0f),
+    COMPACT("紧凑", 0.92f)
+}
+
 data class AppearanceSettings(
     val fontScale: FontScaleOption = FontScaleOption.NORMAL,
     val themeStyle: ThemeStyleOption = ThemeStyleOption.DEFAULT,
+    val themeMode: ThemeModeOption = ThemeModeOption.SYSTEM,
+    val layoutDensity: LayoutDensityOption = LayoutDensityOption.COMFORTABLE,
 )
 
 object AppearancePrefs {
     private const val PREFS_NAME = "netsage_appearance"
     private const val KEY_FONT_SCALE = "font_scale"
     private const val KEY_THEME_STYLE = "theme_style"
+    private const val KEY_THEME_MODE = "theme_mode"
+    private const val KEY_LAYOUT_DENSITY = "layout_density"
 
     fun load(context: Context): AppearanceSettings {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -33,7 +48,18 @@ object AppearancePrefs {
         val themeStyle = prefs.getString(KEY_THEME_STYLE, ThemeStyleOption.DEFAULT.name)
             ?.let { name -> ThemeStyleOption.entries.firstOrNull { it.name == name } }
             ?: ThemeStyleOption.DEFAULT
-        return AppearanceSettings(fontScale = fontScale, themeStyle = themeStyle)
+        val themeMode = prefs.getString(KEY_THEME_MODE, ThemeModeOption.SYSTEM.name)
+            ?.let { name -> ThemeModeOption.entries.firstOrNull { it.name == name } }
+            ?: ThemeModeOption.SYSTEM
+        val layoutDensity = prefs.getString(KEY_LAYOUT_DENSITY, LayoutDensityOption.COMFORTABLE.name)
+            ?.let { name -> LayoutDensityOption.entries.firstOrNull { it.name == name } }
+            ?: LayoutDensityOption.COMFORTABLE
+        return AppearanceSettings(
+            fontScale = fontScale,
+            themeStyle = themeStyle,
+            themeMode = themeMode,
+            layoutDensity = layoutDensity,
+        )
     }
 
     fun save(context: Context, settings: AppearanceSettings) {
@@ -41,6 +67,8 @@ object AppearancePrefs {
             .edit()
             .putString(KEY_FONT_SCALE, settings.fontScale.name)
             .putString(KEY_THEME_STYLE, settings.themeStyle.name)
+            .putString(KEY_THEME_MODE, settings.themeMode.name)
+            .putString(KEY_LAYOUT_DENSITY, settings.layoutDensity.name)
             .apply()
     }
 }
