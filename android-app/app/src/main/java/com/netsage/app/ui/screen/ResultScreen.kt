@@ -34,6 +34,11 @@ private data class ActionStep(
     val detail: String,
 )
 
+private data class PlaybookBranch(
+    val title: String,
+    val actions: List<String>,
+)
+
 private fun buildActionSteps(
     top: CauseItem?,
     recommendedChecklists: List<TroubleshootingChecklist>,
@@ -85,6 +90,44 @@ private fun buildImpactScope(top: CauseItem?): String {
         listOf("timeout", "unreachable", "route", "连接").any { text.contains(it) } -> "影响范围依赖链路拓扑，可能为局部网段或跨网段通信受阻。"
         else -> "当前影响范围不明确，建议补充受影响用户比例、网络区域与复现时间窗口。"
     }
+}
+
+private fun buildPlaybookBranches(
+    top: CauseItem?,
+    recommendedChecklists: List<TroubleshootingChecklist>,
+    recommendedScenarios: List<FaultScenario>
+): List<PlaybookBranch> {
+    if (top == null) return emptyList()
+
+    val firstChecklist = recommendedChecklists.firstOrNull()?.title ?: "通用基础排查清单"
+    val firstScenario = recommendedScenarios.firstOrNull()?.title ?: "相近故障场景"
+
+    return listOf(
+        PlaybookBranch(
+            title = "A分支｜首轮处置后明显改善",
+            actions = listOf(
+                "按《$firstChecklist》完成前2项并记录结果",
+                "对照“$firstScenario”复测关键指标，确认问题收敛",
+                "将本次结论收藏并补充现场备注，防止复发"
+            )
+        ),
+        PlaybookBranch(
+            title = "B分支｜首轮处置后无明显改善",
+            actions = listOf(
+                "切换到 Top2 / Top3 原因继续验证，不要只盯单一结论",
+                "补充更原始日志、时间点与环境变量后再次诊断",
+                "优先排除链路层与配置变更带来的交叉影响"
+            )
+        ),
+        PlaybookBranch(
+            title = "C分支｜现场出现新异常或范围扩大",
+            actions = listOf(
+                "立刻评估影响范围（单终端/单网段/全网）",
+                "优先执行保守绕行方案，先恢复可用性再做根因深挖",
+                "导出“下一步行动单”同步团队并持续复盘"
+            )
+        )
+    )
 }
 
 private fun buildApplicabilityText(top: CauseItem?): Pair<String, String> {
@@ -186,6 +229,7 @@ fun ResultScreen(
     val confidenceText = top?.let { "当前主判断置信度约 ${(it.confidence * 100).toInt()}%，建议优先按主判断推进首轮排查。" }
         ?: "当前暂无可用诊断结果。"
     val actionSteps = buildActionSteps(top, recommendedChecklists, recommendedScenarios)
+    val playbookBranches = buildPlaybookBranches(top, recommendedChecklists, recommendedScenarios)
     val (fitText, notFitText) = buildApplicabilityText(top)
     val impactScope = buildImpactScope(top)
 
@@ -255,6 +299,19 @@ fun ResultScreen(
                     actionSteps.forEachIndexed { index, step ->
                         Text("${index + 1}. ${step.title}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         Text(step.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+
+        if (playbookBranches.isNotEmpty()) {
+            ReportBlock("处置剧本模式") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    playbookBranches.forEach { branch ->
+                        Text(branch.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        branch.actions.forEach { action ->
+                            Text("• $action", style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }
