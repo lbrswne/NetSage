@@ -219,26 +219,20 @@ fun HomeScreen(
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("跑样例") })
                         AssistChip(onClick = onQuickOpenScenarios, label = { Text("场景库") })
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Text(
-                            "查看《用户协议》",
-                            modifier = Modifier.clickable { onOpenUserAgreement() },
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            "查看《隐私政策》",
-                            modifier = Modifier.clickable { onOpenPrivacyPolicy() },
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            "显示与风格",
-                            modifier = Modifier.clickable { onOpenAppearanceSettings() },
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(onClick = onOpenUserAgreement, modifier = Modifier.weight(1f)) {
+                            Text("用户协议")
+                        }
+                        OutlinedButton(onClick = onOpenPrivacyPolicy, modifier = Modifier.weight(1f)) {
+                            Text("隐私政策")
+                        }
                     }
+                    Text(
+                        "显示与风格",
+                        modifier = Modifier.clickable { onOpenAppearanceSettings() },
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
         }
