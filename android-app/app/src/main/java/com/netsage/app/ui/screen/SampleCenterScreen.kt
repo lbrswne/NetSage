@@ -5,12 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,12 +29,16 @@ import androidx.compose.ui.unit.dp
 import com.netsage.app.model.SampleLogItem
 import com.netsage.app.ui.theme.NetSageHeroGradient
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SampleCenterScreen(
     samples: List<SampleLogItem>,
     onUseSample: (String) -> Unit,
     onBack: () -> Unit,
 ) {
+    var currentCategory by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<com.netsage.app.model.FaultCategory?>(null) }
+    val shown = currentCategory?.let { c -> samples.filter { it.category == c } } ?: samples
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -77,6 +84,13 @@ fun SampleCenterScreen(
                 Text("使用说明", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text("• 样例用于离线演示与回归验收，不依赖联网链路。", style = MaterialTheme.typography.bodySmall)
                 Text("• 点击“使用这个样例”后，会直接回填到输入页继续诊断。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AssistChip(onClick = { currentCategory = null }, label = { Text("全部") })
+                    com.netsage.app.model.FaultCategory.entries.forEach { category ->
+                        AssistChip(onClick = { currentCategory = category }, label = { Text(category.label) })
+                    }
+                }
+                Text("当前显示 ${shown.size} 条样例", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -84,7 +98,7 @@ fun SampleCenterScreen(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(samples) { item ->
+            items(shown) { item ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
