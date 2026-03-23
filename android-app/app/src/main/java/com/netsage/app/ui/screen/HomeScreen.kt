@@ -118,6 +118,7 @@ fun HomeScreen(
     onQuickOpenHistory: () -> Unit,
     onQuickOpenReference: () -> Unit,
     onQuickOpenSamples: () -> Unit,
+    onQuickOpenReviewDemo: () -> Unit,
     onQuickOpenFeatureShowcase: () -> Unit,
     onReuseLatestRecord: () -> Unit,
     onOpenHistory: () -> Unit,
@@ -220,6 +221,7 @@ fun HomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("查看新增功能") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })
+                        AssistChip(onClick = onQuickOpenReviewDemo, label = { Text("一键审核演示") })
                     }
                 }
             }
@@ -283,6 +285,7 @@ fun HomeScreen(
                     Text("推荐路径：先用样例体验 → 再贴真实日志 → 查看结果页“下一步行动”执行排查。", style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = onQuickOpenSamples) { Text("先看样例") }
+                        OutlinedButton(onClick = onQuickOpenReviewDemo) { Text("一键演示") }
                         OutlinedButton(onClick = onQuickOpenInput) { Text("直接诊断") }
                     }
                 }

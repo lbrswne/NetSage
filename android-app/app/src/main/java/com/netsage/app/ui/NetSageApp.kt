@@ -34,6 +34,7 @@ import com.netsage.app.ui.screen.PrivacyOnboardingScreen
 import com.netsage.app.ui.screen.PrivacyDocumentScreen
 import com.netsage.app.ui.screen.QuickReferenceScreen
 import com.netsage.app.ui.screen.ResultScreen
+import com.netsage.app.ui.screen.ReviewDemoScreen
 import com.netsage.app.ui.screen.SampleCenterScreen
 import com.netsage.app.ui.screen.SavedReportsScreen
 import com.netsage.app.ui.screen.ScenarioLibraryScreen
@@ -168,6 +169,7 @@ fun NetSageApp(
         HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
         HomeModule("历史复盘", "回看历史记录并继续上次诊断") { state.page = AppPage.HISTORY },
         HomeModule("现场工具箱", "内置常见排障命令模板，可一键复制") { state.page = AppPage.TOOLBOX },
+        HomeModule("审核演示", "一键跑通固定脚本，快速核验核心功能") { state.page = AppPage.REVIEW_DEMO },
         HomeModule("版本新增", "给审核员看的新增能力清单") { state.page = AppPage.FEATURE_SHOWCASE },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
@@ -202,6 +204,7 @@ fun NetSageApp(
             onQuickOpenHistory = { state.page = AppPage.HISTORY },
             onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
             onQuickOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
+            onQuickOpenReviewDemo = { state.page = AppPage.REVIEW_DEMO },
             onQuickOpenFeatureShowcase = { state.page = AppPage.FEATURE_SHOWCASE },
             onReuseLatestRecord = {
                 history.firstOrNull()?.let { record ->
@@ -376,6 +379,21 @@ fun NetSageApp(
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-toolbox-command", command))
                 Toast.makeText(context, "命令已复制", Toast.LENGTH_SHORT).show()
+            }
+        )
+
+        state.page == AppPage.REVIEW_DEMO -> ReviewDemoScreen(
+            onBack = { state.showHome() },
+            onRunDemo = {
+                val demoInput = """
+                    审核演示样例：
+                    现象：业务域名间歇性 504，晚高峰出现明显超时；
+                    日志：GET /api/report -> 504 Gateway Timeout; upstream timed out after 30s;
+                    环境：校园网出口，多个终端复现。
+                """.trimIndent()
+                state.draftInput = demoInput
+                vm.diagnose(demoInput)
+                Toast.makeText(context, "审核演示已启动", Toast.LENGTH_SHORT).show()
             }
         )
 
