@@ -47,6 +47,7 @@ fun ScenarioLibraryScreen(
     var current by remember { mutableStateOf<FaultCategory?>(null) }
     var keyword by remember { mutableStateOf("") }
     val expandedIds = remember { mutableStateListOf<String>() }
+    val presetTags = listOf("校园网", "宿舍", "Wi-Fi", "热点", "公司内网", "家庭宽带", "DNS", "TLS", "HTTP", "丢包")
     val filteredByCategory = current?.let { c -> scenarios.filter { it.category == c } } ?: scenarios
     val shown = filteredByCategory.filter {
         keyword.isBlank() ||
@@ -115,8 +116,18 @@ fun ScenarioLibraryScreen(
                         AssistChip(onClick = { current = category }, label = { Text(category.label) })
                     }
                 }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    presetTags.forEach { tag ->
+                        AssistChip(onClick = { keyword = tag }, label = { Text(tag) })
+                    }
+                }
                 Text(
-                    "当前筛出 ${shown.size} 项。先按分类缩小范围，再展开详情核对排查步骤。",
+                    "当前筛出 ${shown.size} 项。先按分类缩小范围，再用场景标签快速定位真实网络环境。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

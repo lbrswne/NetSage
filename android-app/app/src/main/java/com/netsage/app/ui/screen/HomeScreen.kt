@@ -118,6 +118,7 @@ fun HomeScreen(
     onQuickOpenHistory: () -> Unit,
     onQuickOpenReference: () -> Unit,
     onQuickOpenSamples: () -> Unit,
+    onQuickOpenFeatureShowcase: () -> Unit,
     onReuseLatestRecord: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenUserAgreement: () -> Unit,
@@ -162,6 +163,12 @@ fun HomeScreen(
                         color = Color.White.copy(alpha = 0.84f),
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Text(
+                        "审核可见声明：无账号系统，输入内容默认仅本地处理。",
+                        color = Color.White.copy(alpha = 0.92f),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -201,6 +208,27 @@ fun HomeScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+                border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("本版本功能厚度", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("新增可见功能模块：6 项（首页总览、九宫格入口、结果页专业报告、场景筛选、输入辅助、版本新增清单）", style = MaterialTheme.typography.bodySmall)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("查看新增功能") })
+                        AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })
+                    }
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
@@ -214,6 +242,7 @@ fun HomeScreen(
                         AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
                         AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("跑样例") })
+                        AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("看新增") })
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(

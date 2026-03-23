@@ -24,6 +24,7 @@ import com.netsage.app.model.TroubleshootingChecklist
 import com.netsage.app.repo.OfflineKnowledgeRepository
 import com.netsage.app.ui.screen.AppearanceSettingsScreen
 import com.netsage.app.ui.screen.ChecklistScreen
+import com.netsage.app.ui.screen.FeatureShowcaseScreen
 import com.netsage.app.ui.screen.HistoryScreen
 import com.netsage.app.ui.screen.HomeModule
 import com.netsage.app.ui.screen.HomeScreen
@@ -158,11 +159,14 @@ fun NetSageApp(
     }
 
     val modules = listOf(
+        HomeModule("快速诊断", "输入日志快速生成 Top3 根因与下一步行动") { state.showInput() },
         HomeModule("故障场景库", "离线按 DNS/连接/TLS/HTTP/丢包分类") { state.showScenarioLibrary() },
         HomeModule("样例中心", "一键使用内置样例日志进行诊断") { state.page = AppPage.SAMPLE_CENTER },
         HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.showChecklists() },
         HomeModule("错误码速查", "离线术语/错误码快速查询") { state.page = AppPage.QUICK_REFERENCE },
         HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
+        HomeModule("历史复盘", "回看历史记录并继续上次诊断") { state.page = AppPage.HISTORY },
+        HomeModule("版本新增", "给审核员看的新增能力清单") { state.page = AppPage.FEATURE_SHOWCASE },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
 
@@ -196,6 +200,7 @@ fun NetSageApp(
             onQuickOpenHistory = { state.page = AppPage.HISTORY },
             onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
             onQuickOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
+            onQuickOpenFeatureShowcase = { state.page = AppPage.FEATURE_SHOWCASE },
             onReuseLatestRecord = {
                 history.firstOrNull()?.let { record ->
                     state.showInput(record.inputText.ifBlank { record.inputSummary })
@@ -321,6 +326,23 @@ fun NetSageApp(
                 Toast.makeText(context, "已删除收藏", Toast.LENGTH_SHORT).show()
             },
             onBack = { state.showHome() }
+        )
+
+        state.page == AppPage.FEATURE_SHOWCASE -> FeatureShowcaseScreen(
+            onBack = { state.showHome() },
+            onOpenInput = { state.showInput() },
+            onOpenResultDemo = {
+                val demo = vm.uiState.value.causes.ifEmpty {
+                    listOf(
+                        CauseItem("DNS 解析异常", 0.82, listOf("命中 NXDOMAIN", "关键字包含 server can't find"), "检查权威记录并切换公共 DNS 复测"),
+                        CauseItem("网关上游超时", 0.63, listOf("命中 504", "命中 upstream timeout"), "检查 upstream 健康与超时配置"),
+                        CauseItem("TLS 证书链异常", 0.51, listOf("命中 certificate", "命中 handshake"), "核查证书链与系统时间")
+                    )
+                }
+                state.showResult(demo)
+            },
+            onOpenScenarios = { state.showScenarioLibrary() },
+            onOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
         )
 
         state.page == AppPage.APPEARANCE_SETTINGS -> AppearanceSettingsScreen(
