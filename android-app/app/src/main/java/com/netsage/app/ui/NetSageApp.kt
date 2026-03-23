@@ -181,9 +181,6 @@ fun NetSageApp(
         HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
         HomeModule("历史复盘", "回看历史记录并继续上次诊断") { state.page = AppPage.HISTORY },
         HomeModule("现场工具箱", "内置常见排障命令模板，可一键复制") { state.page = AppPage.TOOLBOX },
-        HomeModule("审核演示", "一键跑通固定脚本，快速核验核心功能") { state.page = AppPage.REVIEW_DEMO },
-        HomeModule("截图向导", "5步截图采集，一键跳转对应页面") { state.page = AppPage.REVIEW_SHOTS_GUIDE },
-        HomeModule("版本新增", "给审核员看的新增能力清单") { state.page = AppPage.FEATURE_SHOWCASE },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
 
