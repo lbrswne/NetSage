@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -43,7 +44,7 @@ import java.util.Locale
 @Composable
 private fun HistorySummaryCard(title: String, value: String, hint: String) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))
@@ -114,7 +115,7 @@ fun HistoryScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(onClick = onBack) {
@@ -145,8 +146,12 @@ fun HistoryScreen(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            HistorySummaryCard("历史总数", records.size.toString(), if (records.isNotEmpty()) "本地历史已沉淀" else "等待首次诊断")
-            HistorySummaryCard("搜索结果", shown.size.toString(), if (keyword.isBlank()) "未启用筛选" else "当前筛选命中")
+            Box(modifier = Modifier.weight(1f)) {
+                HistorySummaryCard("历史总数", records.size.toString(), if (records.isNotEmpty()) "本地历史已沉淀" else "等待首次诊断")
+            }
+            Box(modifier = Modifier.weight(1f)) {
+                HistorySummaryCard("搜索结果", shown.size.toString(), if (keyword.isBlank()) "未启用筛选" else "当前筛选命中")
+            }
         }
 
         Card(
