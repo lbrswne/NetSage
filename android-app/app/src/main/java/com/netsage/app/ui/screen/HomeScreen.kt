@@ -120,6 +120,8 @@ fun HomeScreen(
     onQuickOpenReference: () -> Unit,
     onQuickOpenSamples: () -> Unit,
     onQuickOpenReviewDemo: () -> Unit,
+    onQuickOpenShotsGuide: () -> Unit,
+    onQuickOpenScenarios: () -> Unit,
     onQuickOpenFeatureShowcase: () -> Unit,
     onReuseLatestRecord: () -> Unit,
     onOpenHistory: () -> Unit,
@@ -251,6 +253,10 @@ fun HomeScreen(
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })
                         AssistChip(onClick = onQuickOpenReviewDemo, label = { Text("一键审核演示") })
                     }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AssistChip(onClick = onQuickOpenShotsGuide, label = { Text("截图向导") })
+                        AssistChip(onClick = onQuickOpenScenarios, label = { Text("场景直达") })
+                    }
                 }
             }
         }
@@ -314,6 +320,7 @@ fun HomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = onQuickOpenSamples) { Text("先看样例") }
                         OutlinedButton(onClick = onQuickOpenReviewDemo) { Text("一键演示") }
+                        OutlinedButton(onClick = onQuickOpenShotsGuide) { Text("截图向导") }
                         OutlinedButton(onClick = onQuickOpenInput) { Text("直接诊断") }
                     }
                 }
