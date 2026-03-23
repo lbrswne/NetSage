@@ -60,5 +60,6 @@ data class SavedReportItem(
     val title: String,
     val summary: String,
     val createdAt: Long,
-    val inputText: String = ""
+    val inputText: String = "",
+    val tags: List<String> = emptyList()
 )

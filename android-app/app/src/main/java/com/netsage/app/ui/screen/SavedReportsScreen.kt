@@ -209,6 +209,9 @@ fun SavedReportsScreen(
                         Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(formatter.format(Date(item.createdAt)), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                         Text(item.summary, style = MaterialTheme.typography.bodyMedium)
+                        if (item.tags.isNotEmpty()) {
+                            Text("标签：${item.tags.joinToString(" / ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                        }
                         if (expanded) {
                             Text("收藏详情", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                             Text("• 标题：${item.title}", style = MaterialTheme.typography.bodySmall)

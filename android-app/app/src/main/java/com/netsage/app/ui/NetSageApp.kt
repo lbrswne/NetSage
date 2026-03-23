@@ -69,6 +69,16 @@ private fun inferCategory(cause: CauseItem): FaultCategory? {
     }
 }
 
+private fun inferTags(cause: CauseItem): List<String> {
+    val categoryTag = inferCategory(cause)?.label
+    val severityTag = when {
+        cause.confidence >= 0.85 -> "高优先级"
+        cause.confidence >= 0.60 -> "中优先级"
+        else -> "低优先级"
+    }
+    return listOfNotNull(categoryTag, severityTag).distinct()
+}
+
 private fun extractKeywords(cause: CauseItem): List<String> {
     val tokens = buildList {
         add(cause.name)
@@ -257,7 +267,8 @@ fun NetSageApp(
                             title = top.name,
                             summary = top.fix,
                             createdAt = System.currentTimeMillis(),
-                            inputText = state.draftInput
+                            inputText = state.draftInput,
+                            tags = inferTags(top)
                         )
                     )
                     savedReports = SavedReportStore.load(context)
@@ -364,6 +375,7 @@ fun NetSageApp(
                     appendLine("NetSage 收藏诊断")
                     appendLine("标题：${item.title}")
                     appendLine("摘要：${item.summary}")
+                    if (item.tags.isNotEmpty()) appendLine("标签：${item.tags.joinToString(" / ")}")
                     append("收藏时间：${item.createdAt}")
                 }
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
