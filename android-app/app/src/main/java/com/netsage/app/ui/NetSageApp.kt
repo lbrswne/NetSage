@@ -37,6 +37,7 @@ import com.netsage.app.ui.screen.ResultScreen
 import com.netsage.app.ui.screen.SampleCenterScreen
 import com.netsage.app.ui.screen.SavedReportsScreen
 import com.netsage.app.ui.screen.ScenarioLibraryScreen
+import com.netsage.app.ui.screen.ToolboxScreen
 import com.netsage.app.util.AppearanceSettings
 import com.netsage.app.util.DiagnoseHistoryStore
 import com.netsage.app.model.SavedReportItem
@@ -166,6 +167,7 @@ fun NetSageApp(
         HomeModule("错误码速查", "离线术语/错误码快速查询") { state.page = AppPage.QUICK_REFERENCE },
         HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
         HomeModule("历史复盘", "回看历史记录并继续上次诊断") { state.page = AppPage.HISTORY },
+        HomeModule("现场工具箱", "内置常见排障命令模板，可一键复制") { state.page = AppPage.TOOLBOX },
         HomeModule("版本新增", "给审核员看的新增能力清单") { state.page = AppPage.FEATURE_SHOWCASE },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
@@ -263,6 +265,24 @@ fun NetSageApp(
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-report", report))
                 Toast.makeText(context, "报告已复制", Toast.LENGTH_SHORT).show()
+            },
+            onExportActionPlan = {
+                val top = state.causes.firstOrNull()
+                val checklists = recommendChecklists(state.causes)
+                val scenarios = recommendScenarios(state.causes)
+                val actionPlan = buildString {
+                    appendLine("NetSage 下一步行动单")
+                    appendLine("主判断：${top?.name ?: "暂无"}")
+                    appendLine("建议处理：${top?.fix ?: "暂无"}")
+                    appendLine("优先动作：")
+                    appendLine("1) 先核对输入日志与现场现象是否一致")
+                    appendLine("2) 按推荐清单执行前2步：${checklists.firstOrNull()?.title ?: "（暂无推荐清单）"}")
+                    appendLine("3) 对照场景复核：${scenarios.firstOrNull()?.title ?: "（暂无推荐场景）"}")
+                    appendLine("4) 若无改善，回看 Top2/Top3 继续排查")
+                }
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-action-plan", actionPlan))
+                Toast.makeText(context, "行动单已复制", Toast.LENGTH_SHORT).show()
             }
         )
 
@@ -326,6 +346,15 @@ fun NetSageApp(
                 Toast.makeText(context, "已删除收藏", Toast.LENGTH_SHORT).show()
             },
             onBack = { state.showHome() }
+        )
+
+        state.page == AppPage.TOOLBOX -> ToolboxScreen(
+            onBack = { state.showHome() },
+            onCopyCommand = { command ->
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-toolbox-command", command))
+                Toast.makeText(context, "命令已复制", Toast.LENGTH_SHORT).show()
+            }
         )
 
         state.page == AppPage.FEATURE_SHOWCASE -> FeatureShowcaseScreen(

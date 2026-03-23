@@ -216,7 +216,7 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text("本版本功能厚度", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("新增可见功能模块：6 项（首页总览、九宫格入口、结果页专业报告、场景筛选、输入辅助、版本新增清单）", style = MaterialTheme.typography.bodySmall)
+                    Text("新增可见功能模块：7 项（首页总览、十宫格入口、结果页专业报告+行动单、场景筛选、输入辅助、工具箱、版本新增清单）", style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("查看新增功能") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })

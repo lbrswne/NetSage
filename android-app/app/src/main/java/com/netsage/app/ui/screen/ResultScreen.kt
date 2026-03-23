@@ -169,7 +169,8 @@ fun ResultScreen(
     onOpenScenarios: (String?) -> Unit,
     onSaveReport: () -> Unit,
     onBack: () -> Unit,
-    onCopyReport: () -> Unit = {}
+    onCopyReport: () -> Unit = {},
+    onExportActionPlan: () -> Unit = {}
 ) {
     val top = causes.firstOrNull()
     val severity = when {
@@ -310,6 +311,9 @@ fun ResultScreen(
             OutlinedButton(onClick = onCopyReport, modifier = Modifier.weight(1f)) {
                 Text("复制报告")
             }
+        }
+        OutlinedButton(onClick = onExportActionPlan, modifier = Modifier.fillMaxWidth()) {
+            Text("导出下一步行动单")
         }
     }
 }
