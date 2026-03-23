@@ -58,6 +58,29 @@ private fun buildInputQualityHint(text: String): String {
     }
 }
 
+private fun buildInputQualityScore(text: String): Int {
+    val trimmed = text.trim()
+    if (trimmed.isBlank()) return 0
+
+    var score = 0
+    if (trimmed.length >= 24) score += 20
+    if (trimmed.length >= 80) score += 15
+    if (Regex("\\d{2}:\\d{2}|\\d{4}-\\d{2}-\\d{2}").containsMatchIn(trimmed)) score += 15
+
+    val lower = trimmed.lowercase()
+    if (listOf("502", "504", "timeout", "nxdomain", "certificate", "handshake", "unreachable", "refused").any { lower.contains(it) }) score += 25
+    if (listOf("校园网", "宿舍", "公司", "家庭", "热点", "wifi", "内网").any { lower.contains(it) }) score += 15
+    if (listOf("影响范围", "复现", "日志", "错误码", "时间").any { lower.contains(it) }) score += 10
+
+    return score.coerceIn(0, 100)
+}
+
+private fun qualityLevel(score: Int): String = when {
+    score >= 75 -> "高"
+    score >= 45 -> "中"
+    else -> "低"
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InputScreen(
@@ -85,6 +108,14 @@ fun InputScreen(
         )
     )
     val qualityHint = buildInputQualityHint(logText.value)
+    val qualityScore = buildInputQualityScore(logText.value)
+    val qualityLevel = qualityLevel(qualityScore)
+    val completionChecklist = listOf(
+        "是否包含明确报错原文/错误码",
+        "是否给出发生时间与复现频率",
+        "是否描述了影响范围（单设备/多设备）",
+        "是否说明网络环境（校园网/宿舍/企业/家宽/热点）"
+    )
     val faultTypeGuides = listOf(
         "DNS解析" to "可补充 nslookup/dig 结果、DNS 服务器地址、是否全员受影响",
         "TLS证书" to "可补充证书报错原文、系统时间、客户端/服务端 TLS 版本",
@@ -163,6 +194,7 @@ fun InputScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text("输入质量提示", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text("质量评分：$qualityScore/100（$qualityLevel）", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                         Text(qualityHint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -229,6 +261,23 @@ fun InputScreen(
                             label = { Text(template.label) }
                         )
                     }
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("输入补全清单", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                completionChecklist.forEach { item ->
+                    Text("• $item", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
