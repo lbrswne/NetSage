@@ -382,6 +382,11 @@ fun NetSageApp(
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-toolbox-command", command))
                 Toast.makeText(context, "命令已复制", Toast.LENGTH_SHORT).show()
+            },
+            onCopyInterpretation = { interpretation ->
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-toolbox-interpretation", interpretation))
+                Toast.makeText(context, "判读提示已复制", Toast.LENGTH_SHORT).show()
             }
         )
 
