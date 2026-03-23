@@ -147,6 +147,7 @@ fun HomeScreen(
         "审核演示/截图向导/提审文案复制" to true,
         "工具箱命令+判读提示复制" to true,
     )
+    val enhancementDone = releaseProgress.count { it.second }
 
     LazyColumn(
         modifier = Modifier
@@ -234,6 +235,7 @@ fun HomeScreen(
                 ) {
                     Text("本版本功能厚度", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("新增可见功能模块：7 项（首页总览、十宫格入口、结果页专业报告+行动单、场景筛选、输入辅助、工具箱、版本新增清单）", style = MaterialTheme.typography.bodySmall)
+                    Text("模块总数：${allModules.size}｜增强项完成：$enhancementDone/${releaseProgress.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                     capabilityStats.forEach { (name, score) ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
