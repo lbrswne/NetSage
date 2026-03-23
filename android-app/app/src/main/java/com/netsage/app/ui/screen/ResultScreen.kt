@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,6 +21,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +41,12 @@ private data class PlaybookBranch(
     val title: String,
     val actions: List<String>,
 )
+
+private enum class TaskStatus(val label: String) {
+    TODO("待执行"),
+    DONE("已执行"),
+    INVALID("无效")
+}
 
 private fun buildActionSteps(
     top: CauseItem?,
@@ -252,6 +261,11 @@ fun ResultScreen(
         ?: "当前暂无可用诊断结果。"
     val actionSteps = buildActionSteps(top, recommendedChecklists, recommendedScenarios)
     val playbookBranches = buildPlaybookBranches(top, recommendedChecklists, recommendedScenarios)
+    val taskStatuses = remember(actionSteps) {
+        mutableStateMapOf<Int, TaskStatus>().apply {
+            actionSteps.indices.forEach { idx -> put(idx, TaskStatus.TODO) }
+        }
+    }
     val (fitText, notFitText) = buildApplicabilityText(top)
     val impactScope = buildImpactScope(top)
     val emergencyPlan = listOf(
@@ -321,12 +335,31 @@ fun ResultScreen(
         }
 
         if (actionSteps.isNotEmpty()) {
-            ReportBlock("建议处理顺序") {
+            ReportBlock("交互式下一步任务流") {
+                val doneCount = taskStatuses.values.count { it == TaskStatus.DONE }
+                val invalidCount = taskStatuses.values.count { it == TaskStatus.INVALID }
+                val branchHint = when {
+                    invalidCount >= 2 -> "建议切换到 B 分支：补充日志后重诊断。"
+                    doneCount >= 2 -> "建议继续 A 分支：复测关键指标并收敛。"
+                    else -> "先完成前两步，再判断是否进入 A/B/C 分支。"
+                }
+
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("执行进度：$doneCount/${actionSteps.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                     actionSteps.forEachIndexed { index, step ->
                         Text("${index + 1}. ${step.title}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         Text(step.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            TaskStatus.entries.forEach { status ->
+                                AssistChip(
+                                    onClick = { taskStatuses[index] = status },
+                                    label = { Text(status.label) },
+                                    border = if (taskStatuses[index] == status) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                                )
+                            }
+                        }
                     }
+                    Text("分支建议：$branchHint", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
