@@ -217,10 +217,7 @@ fun NetSageApp(
             onQuickOpenHistory = { state.page = AppPage.HISTORY },
             onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
             onQuickOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
-            onQuickOpenReviewDemo = { state.page = AppPage.REVIEW_DEMO },
-            onQuickOpenShotsGuide = { state.page = AppPage.REVIEW_SHOTS_GUIDE },
             onQuickOpenScenarios = { state.showScenarioLibrary() },
-            onQuickOpenFeatureShowcase = { state.page = AppPage.FEATURE_SHOWCASE },
             onReuseLatestRecord = {
                 history.firstOrNull()?.let { record ->
                     state.showInput(record.inputText.ifBlank { record.inputSummary })

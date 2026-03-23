@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -119,10 +118,7 @@ fun HomeScreen(
     onQuickOpenHistory: () -> Unit,
     onQuickOpenReference: () -> Unit,
     onQuickOpenSamples: () -> Unit,
-    onQuickOpenReviewDemo: () -> Unit,
-    onQuickOpenShotsGuide: () -> Unit,
     onQuickOpenScenarios: () -> Unit,
-    onQuickOpenFeatureShowcase: () -> Unit,
     onReuseLatestRecord: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenUserAgreement: () -> Unit,
@@ -134,20 +130,6 @@ fun HomeScreen(
         OverviewStat("收藏诊断", savedReportCount.toString(), if (savedReportCount > 0) "可回看重点结果" else "尚未收藏结果"),
         OverviewStat("历史记录", historyCount.toString(), if (historyCount > 0) "支持继续回填分析" else "等待首次诊断沉淀"),
     )
-    val capabilityStats = listOf(
-        "诊断深度" to 5,
-        "场景覆盖" to 5,
-        "工具能力" to 4,
-        "审核可见" to 5,
-    )
-    val releaseProgress = listOf(
-        "输入质量评分与补全清单" to true,
-        "结果页处置剧本与应急指挥卡" to true,
-        "场景库层级筛选与热门场景" to true,
-        "审核演示/截图向导/提审文案复制" to true,
-        "工具箱命令+判读提示复制" to true,
-    )
-    val enhancementDone = releaseProgress.count { it.second }
 
     LazyColumn(
         modifier = Modifier
@@ -181,12 +163,7 @@ fun HomeScreen(
                         color = Color.White.copy(alpha = 0.84f),
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Text(
-                        "审核可见声明：无账号系统，输入内容默认仅本地处理。",
-                        color = Color.White.copy(alpha = 0.92f),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
+
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -222,68 +199,6 @@ fun HomeScreen(
             }
         }
 
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
-                border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text("本版本功能厚度", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("新增可见功能模块：7 项（首页总览、十宫格入口、结果页专业报告+行动单、场景筛选、输入辅助、工具箱、版本新增清单）", style = MaterialTheme.typography.bodySmall)
-                    Text("模块总数：${allModules.size}｜增强项完成：$enhancementDone/${releaseProgress.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                    capabilityStats.forEach { (name, score) ->
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(name, style = MaterialTheme.typography.bodySmall)
-                                Text("$score/5", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-                            }
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
-                                repeat(5) { idx ->
-                                    val active = idx < score
-                                    Card(
-                                        modifier = Modifier.weight(1f),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-                                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-                                        ),
-                                        shape = RoundedCornerShape(999.dp)
-                                    ) { Spacer(modifier = Modifier.padding(vertical = 4.dp)) }
-                                }
-                            }
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text("版本增强进度", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                            releaseProgress.forEach { (item, done) ->
-                                Text("${if (done) "✅" else "⬜"} $item", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("查看新增功能") })
-                        AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })
-                        AssistChip(onClick = onQuickOpenReviewDemo, label = { Text("一键审核演示") })
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        AssistChip(onClick = onQuickOpenShotsGuide, label = { Text("截图向导") })
-                        AssistChip(onClick = onQuickOpenScenarios, label = { Text("场景直达") })
-                    }
-                }
-            }
-        }
 
         item {
             Card(
@@ -302,7 +217,7 @@ fun HomeScreen(
                         AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
                         AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("跑样例") })
-                        AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("看新增") })
+                        AssistChip(onClick = onQuickOpenScenarios, label = { Text("场景库") })
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(
@@ -343,8 +258,7 @@ fun HomeScreen(
                     Text("推荐路径：先用样例体验 → 再贴真实日志 → 查看结果页“下一步行动”执行排查。", style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = onQuickOpenSamples) { Text("先看样例") }
-                        OutlinedButton(onClick = onQuickOpenReviewDemo) { Text("一键演示") }
-                        OutlinedButton(onClick = onQuickOpenShotsGuide) { Text("截图向导") }
+                        OutlinedButton(onClick = onQuickOpenScenarios) { Text("看场景库") }
                         OutlinedButton(onClick = onQuickOpenInput) { Text("直接诊断") }
                     }
                 }
