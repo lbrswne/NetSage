@@ -35,6 +35,8 @@ import com.netsage.app.ui.screen.PrivacyDocumentScreen
 import com.netsage.app.ui.screen.QuickReferenceScreen
 import com.netsage.app.ui.screen.ResultScreen
 import com.netsage.app.ui.screen.ReviewDemoScreen
+import com.netsage.app.ui.screen.ReviewShotStep
+import com.netsage.app.ui.screen.ReviewShotsGuideScreen
 import com.netsage.app.ui.screen.SampleCenterScreen
 import com.netsage.app.ui.screen.SavedReportsScreen
 import com.netsage.app.ui.screen.ScenarioLibraryScreen
@@ -170,6 +172,7 @@ fun NetSageApp(
         HomeModule("历史复盘", "回看历史记录并继续上次诊断") { state.page = AppPage.HISTORY },
         HomeModule("现场工具箱", "内置常见排障命令模板，可一键复制") { state.page = AppPage.TOOLBOX },
         HomeModule("审核演示", "一键跑通固定脚本，快速核验核心功能") { state.page = AppPage.REVIEW_DEMO },
+        HomeModule("截图向导", "5步截图采集，一键跳转对应页面") { state.page = AppPage.REVIEW_SHOTS_GUIDE },
         HomeModule("版本新增", "给审核员看的新增能力清单") { state.page = AppPage.FEATURE_SHOWCASE },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
@@ -409,6 +412,24 @@ fun NetSageApp(
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-review-summary", summary))
                 Toast.makeText(context, "功能核验摘要已复制", Toast.LENGTH_SHORT).show()
             }
+        )
+
+        state.page == AppPage.REVIEW_SHOTS_GUIDE -> ReviewShotsGuideScreen(
+            onBack = { state.showHome() },
+            steps = listOf(
+                ReviewShotStep("首页功能厚度", "截图首页的功能厚度卡片与模块入口。", "跳转首页") { state.showHome() },
+                ReviewShotStep("输入页增强", "截图随机样例/一键清空/诊断按钮。", "跳转输入页") { state.showInput() },
+                ReviewShotStep("结果页专业报告", "截图风险等级、影响范围、建议处理顺序。", "跳转结果演示") {
+                    val demo = listOf(
+                        CauseItem("DNS 解析异常", 0.82, listOf("命中 NXDOMAIN", "关键字包含 server can't find"), "检查权威记录并切换公共 DNS 复测"),
+                        CauseItem("网关上游超时", 0.63, listOf("命中 504", "命中 upstream timeout"), "检查 upstream 健康与超时配置"),
+                        CauseItem("TLS 证书链异常", 0.51, listOf("命中 certificate", "命中 handshake"), "核查证书链与系统时间")
+                    )
+                    state.showResult(demo)
+                },
+                ReviewShotStep("场景库与热门场景", "截图分类计数与热门场景一键诊断按钮。", "跳转场景库") { state.showScenarioLibrary() },
+                ReviewShotStep("审核演示与新增清单", "截图审核演示页/版本新增页作为收尾证明。", "跳转审核演示") { state.page = AppPage.REVIEW_DEMO },
+            )
         )
 
         state.page == AppPage.FEATURE_SHOWCASE -> FeatureShowcaseScreen(
