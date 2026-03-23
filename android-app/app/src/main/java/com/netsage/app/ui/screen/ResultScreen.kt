@@ -253,6 +253,11 @@ fun ResultScreen(
     val playbookBranches = buildPlaybookBranches(top, recommendedChecklists, recommendedScenarios)
     val (fitText, notFitText) = buildApplicabilityText(top)
     val impactScope = buildImpactScope(top)
+    val emergencyPlan = listOf(
+        "0-3 分钟：确认影响范围（单用户/单网段/全量）并锁定主判断",
+        "3-8 分钟：执行主判断首轮处置，优先恢复可用性",
+        "8-15 分钟：复测关键指标，若无改善立即切换 Top2/Top3"
+    )
 
     Column(
         modifier = Modifier
@@ -321,6 +326,14 @@ fun ResultScreen(
                         Text("${index + 1}. ${step.title}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         Text(step.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                }
+            }
+        }
+
+        ReportBlock("应急指挥卡（黄金15分钟）") {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                emergencyPlan.forEach { step ->
+                    Text("• $step", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
