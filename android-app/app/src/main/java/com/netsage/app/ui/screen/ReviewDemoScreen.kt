@@ -31,6 +31,7 @@ import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
 fun ReviewDemoScreen(
     onBack: () -> Unit,
     onRunDemo: () -> Unit,
+    onCopyReviewSummary: () -> Unit,
 ) {
     val steps = listOf(
         "1) 点击下方“开始一键演示”",
@@ -82,6 +83,9 @@ fun ReviewDemoScreen(
 
         Button(onClick = onRunDemo, modifier = Modifier.fillMaxWidth()) {
             Text("开始一键演示")
+        }
+        OutlinedButton(onClick = onCopyReviewSummary, modifier = Modifier.fillMaxWidth()) {
+            Text("复制功能核验摘要")
         }
     }
 }

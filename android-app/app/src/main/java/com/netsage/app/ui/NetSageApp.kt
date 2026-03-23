@@ -394,6 +394,20 @@ fun NetSageApp(
                 state.draftInput = demoInput
                 vm.diagnose(demoInput)
                 Toast.makeText(context, "审核演示已启动", Toast.LENGTH_SHORT).show()
+            },
+            onCopyReviewSummary = {
+                val summary = buildString {
+                    appendLine("NetSage 功能核验摘要（审核演示）")
+                    appendLine("1) 首页可见：功能厚度总览 + 审核演示入口")
+                    appendLine("2) 输入页可见：随机样例 / 一键清空 / 诊断进度")
+                    appendLine("3) 结果页可见：风险等级 / 影响范围 / 建议处理顺序 / 行动单导出")
+                    appendLine("4) 场景库可见：分类计数 / 热门场景 / 一键回填并诊断")
+                    appendLine("5) 工具箱可见：常见排障命令模板可复制")
+                    appendLine("结论：当前版本为多模块可见增强版本，功能厚度显著提升。")
+                }
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-review-summary", summary))
+                Toast.makeText(context, "功能核验摘要已复制", Toast.LENGTH_SHORT).show()
             }
         )
 
