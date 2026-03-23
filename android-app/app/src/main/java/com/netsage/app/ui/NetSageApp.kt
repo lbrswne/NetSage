@@ -467,6 +467,20 @@ fun NetSageApp(
             },
             onOpenScenarios = { state.showScenarioLibrary() },
             onOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
+            onCopySubmissionBrief = {
+                val brief = """
+                    NetSage 本版本功能增强说明（提审用）
+                    1) 首页：功能厚度面板 + 能力评分条 + 快速开始集群
+                    2) 输入页：随机样例/一键清空/诊断进度 + 输入质量评分 + 补全清单
+                    3) 结果页：风险等级/影响范围/处置剧本/黄金15分钟应急指挥卡/行动单导出
+                    4) 场景库：分类计数 + 热门场景 + 层级筛选 + 一键回填诊断
+                    5) 审核支持：一键审核演示、截图向导、核验摘要与截图脚本复制
+                    6) 工具箱：排障命令模板 + 判读提示复制
+                """.trimIndent()
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("netsage-submission-brief", brief))
+                Toast.makeText(context, "提审功能说明已复制", Toast.LENGTH_SHORT).show()
+            }
         )
 
         state.page == AppPage.APPEARANCE_SETTINGS -> AppearanceSettingsScreen(

@@ -34,6 +34,7 @@ fun FeatureShowcaseScreen(
     onOpenResultDemo: () -> Unit,
     onOpenScenarios: () -> Unit,
     onOpenSamples: () -> Unit,
+    onCopySubmissionBrief: () -> Unit,
 ) {
     val features = listOf(
         "首页新增功能厚度总览（审核首屏可见）",
@@ -84,6 +85,9 @@ fun FeatureShowcaseScreen(
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("审核核验建议", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text("建议按：首页→输入页→结果页→场景库→设置页 的顺序截图，可一眼看出功能增量。", style = MaterialTheme.typography.bodySmall)
+                OutlinedButton(onClick = onCopySubmissionBrief, modifier = Modifier.fillMaxWidth()) {
+                    Text("复制提审功能说明")
+                }
             }
         }
 
