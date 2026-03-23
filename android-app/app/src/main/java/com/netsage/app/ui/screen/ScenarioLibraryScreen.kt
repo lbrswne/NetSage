@@ -52,6 +52,7 @@ fun ScenarioLibraryScreen(
     var current by remember { mutableStateOf<FaultCategory?>(null) }
     var keyword by remember { mutableStateOf("") }
     var currentLayer by remember { mutableStateOf<String?>(null) }
+    var favoritesOnly by remember { mutableStateOf(false) }
     val expandedIds = remember { mutableStateListOf<String>() }
     val presetTags = listOf("校园网", "宿舍", "Wi-Fi", "热点", "公司内网", "家庭宽带", "DNS", "TLS", "HTTP", "丢包")
     val layerTags = scenarios.flatMap { it.layers }.distinct()
@@ -65,7 +66,8 @@ fun ScenarioLibraryScreen(
 
     val filteredByCategory = current?.let { c -> scenarios.filter { it.category == c } } ?: scenarios
     val filteredByLayer = currentLayer?.let { layer -> filteredByCategory.filter { it.layers.contains(layer) } } ?: filteredByCategory
-    val shown = filteredByLayer.filter {
+    val filteredByFavorite = if (favoritesOnly) filteredByLayer.filter { it.id in favoriteIds } else filteredByLayer
+    val shown = filteredByFavorite.filter {
         keyword.isBlank() ||
             it.title.contains(keyword, ignoreCase = true) ||
             it.symptoms.contains(keyword, ignoreCase = true) ||
@@ -212,6 +214,15 @@ fun ScenarioLibraryScreen(
                     layerTags.forEach { layer ->
                         AssistChip(onClick = { currentLayer = layer }, label = { Text(layer) })
                     }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AssistChip(onClick = { favoritesOnly = false }, label = { Text("全部场景") })
+                    AssistChip(onClick = { favoritesOnly = true }, label = { Text("仅看收藏") })
                 }
                 Text(
                     "当前筛出 ${shown.size} 项。先按分类，再按网络层级（校园/宿舍/家宽/企业/热点）筛选。",
