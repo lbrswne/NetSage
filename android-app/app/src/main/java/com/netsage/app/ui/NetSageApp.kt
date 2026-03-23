@@ -462,9 +462,9 @@ fun NetSageApp(
                 ReviewShotStep("输入页增强", "截图随机样例/一键清空/诊断按钮。", "跳转输入页") { state.showInput() },
                 ReviewShotStep("结果页专业报告", "截图风险等级、影响范围、建议处理顺序。", "跳转结果演示") {
                     val demo = listOf(
-                        CauseItem("DNS 解析异常", 0.82, listOf("命中 NXDOMAIN", "关键字包含 server can't find"), "检查权威记录并切换公共 DNS 复测"),
-                        CauseItem("网关上游超时", 0.63, listOf("命中 504", "命中 upstream timeout"), "检查 upstream 健康与超时配置"),
-                        CauseItem("TLS 证书链异常", 0.51, listOf("命中 certificate", "命中 handshake"), "核查证书链与系统时间")
+                        CauseItem("DNS 解析异常", 0.82, "检查权威记录并切换公共 DNS 复测", listOf("命中 NXDOMAIN", "关键字包含 server can't find")),
+                        CauseItem("网关上游超时", 0.63, "检查 upstream 健康与超时配置", listOf("命中 504", "命中 upstream timeout")),
+                        CauseItem("TLS 证书链异常", 0.51, "核查证书链与系统时间", listOf("命中 certificate", "命中 handshake"))
                     )
                     state.showResult(demo)
                 },
@@ -492,9 +492,9 @@ fun NetSageApp(
             onOpenResultDemo = {
                 val demo = vm.uiState.value.causes.ifEmpty {
                     listOf(
-                        CauseItem("DNS 解析异常", 0.82, listOf("命中 NXDOMAIN", "关键字包含 server can't find"), "检查权威记录并切换公共 DNS 复测"),
-                        CauseItem("网关上游超时", 0.63, listOf("命中 504", "命中 upstream timeout"), "检查 upstream 健康与超时配置"),
-                        CauseItem("TLS 证书链异常", 0.51, listOf("命中 certificate", "命中 handshake"), "核查证书链与系统时间")
+                        CauseItem("DNS 解析异常", 0.82, "检查权威记录并切换公共 DNS 复测", listOf("命中 NXDOMAIN", "关键字包含 server can't find")),
+                        CauseItem("网关上游超时", 0.63, "检查 upstream 健康与超时配置", listOf("命中 504", "命中 upstream timeout")),
+                        CauseItem("TLS 证书链异常", 0.51, "核查证书链与系统时间", listOf("命中 certificate", "命中 handshake"))
                     )
                 }
                 state.showResult(demo)

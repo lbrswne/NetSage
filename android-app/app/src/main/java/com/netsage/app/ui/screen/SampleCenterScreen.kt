@@ -22,6 +22,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -36,8 +38,8 @@ fun SampleCenterScreen(
     onUseSample: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    var currentCategory by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<com.netsage.app.model.FaultCategory?>(null) }
-    val shown = currentCategory?.let { c -> samples.filter { it.category == c } } ?: samples
+    val currentCategory = remember { mutableStateOf<com.netsage.app.model.FaultCategory?>(null) }
+    val shown = currentCategory.value?.let { c -> samples.filter { it.category == c } } ?: samples
 
     Column(
         modifier = Modifier
@@ -85,9 +87,9 @@ fun SampleCenterScreen(
                 Text("• 样例用于离线演示与回归验收，不依赖联网链路。", style = MaterialTheme.typography.bodySmall)
                 Text("• 点击“使用这个样例”后，会直接回填到输入页继续诊断。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AssistChip(onClick = { currentCategory = null }, label = { Text("全部") })
+                    AssistChip(onClick = { currentCategory.value = null }, label = { Text("全部") })
                     com.netsage.app.model.FaultCategory.entries.forEach { category ->
-                        AssistChip(onClick = { currentCategory = category }, label = { Text(category.label) })
+                        AssistChip(onClick = { currentCategory.value = category }, label = { Text(category.label) })
                     }
                 }
                 Text("当前显示 ${shown.size} 条样例", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
