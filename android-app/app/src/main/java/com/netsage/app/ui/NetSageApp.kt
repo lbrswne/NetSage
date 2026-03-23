@@ -299,6 +299,18 @@ fun NetSageApp(
                     appendLine("修复提示：${scenario.fixHints.joinToString("；")}")
                 }
                 state.showInput(draft)
+            },
+            onRunReviewDemo = { scenario ->
+                val draft = buildString {
+                    appendLine("场景：${scenario.title}")
+                    appendLine("分类：${scenario.category.label}")
+                    appendLine("典型现象：${scenario.symptoms}")
+                    appendLine("建议先排查：${scenario.checks.joinToString("；")}")
+                    appendLine("修复提示：${scenario.fixHints.joinToString("；")}")
+                }
+                state.draftInput = draft
+                vm.diagnose(draft)
+                Toast.makeText(context, "已启动审核演示诊断", Toast.LENGTH_SHORT).show()
             }
         )
 

@@ -45,6 +45,7 @@ fun ScenarioLibraryScreen(
     onBack: () -> Unit,
     highlightedId: String? = null,
     onUseScenario: (FaultScenario) -> Unit = {},
+    onRunReviewDemo: (FaultScenario) -> Unit = {},
 ) {
     var current by remember { mutableStateOf<FaultCategory?>(null) }
     var keyword by remember { mutableStateOf("") }
@@ -136,6 +137,14 @@ fun ScenarioLibraryScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("热门场景", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                hotScenarios.firstOrNull()?.let { firstHot ->
+                    Button(
+                        onClick = { onRunReviewDemo(firstHot) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("一键审核演示（场景→诊断结果）")
+                    }
+                }
                 hotScenarios.forEachIndexed { index, item ->
                     Text("${index + 1}. [${item.category.label}] ${item.title}", style = MaterialTheme.typography.bodySmall)
                     OutlinedButton(
