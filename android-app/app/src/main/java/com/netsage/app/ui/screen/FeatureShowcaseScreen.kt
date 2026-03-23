@@ -72,7 +72,7 @@ fun FeatureShowcaseScreen(
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text("版本新增功能清单", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("该页面用于应用市场审核快速核验：当前版本新增了哪些可见能力。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+                Text("该页面用于查看当前版本新增了哪些可见能力。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
             }
         }
 
@@ -83,10 +83,10 @@ fun FeatureShowcaseScreen(
             border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("审核核验建议", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text("建议按：首页→输入页→结果页→场景库→设置页 的顺序截图，可一眼看出功能增量。", style = MaterialTheme.typography.bodySmall)
+                Text("使用建议", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text("建议按：首页→输入页→结果页→场景库→设置页 的顺序体验。", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = onCopySubmissionBrief, modifier = Modifier.fillMaxWidth()) {
-                    Text("复制提审功能说明")
+                    Text("复制功能说明")
                 }
             }
         }

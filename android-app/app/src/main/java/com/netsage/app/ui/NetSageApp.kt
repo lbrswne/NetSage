@@ -345,7 +345,7 @@ fun NetSageApp(
                 }
                 state.draftInput = draft
                 vm.diagnose(draft)
-                Toast.makeText(context, "已启动审核演示诊断", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "已启动快速演示诊断", Toast.LENGTH_SHORT).show()
             }
         )
 
@@ -424,19 +424,19 @@ fun NetSageApp(
             onBack = { state.showHome() },
             onRunDemo = {
                 val demoInput = """
-                    审核演示样例：
+                    快速演示样例：
                     现象：业务域名间歇性 504，晚高峰出现明显超时；
                     日志：GET /api/report -> 504 Gateway Timeout; upstream timed out after 30s;
                     环境：校园网出口，多个终端复现。
                 """.trimIndent()
                 state.draftInput = demoInput
                 vm.diagnose(demoInput)
-                Toast.makeText(context, "审核演示已启动", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "快速演示已启动", Toast.LENGTH_SHORT).show()
             },
             onCopyReviewSummary = {
                 val summary = buildString {
-                    appendLine("NetSage 功能核验摘要（审核演示）")
-                    appendLine("1) 首页可见：功能厚度总览 + 审核演示入口")
+                    appendLine("NetSage 功能摘要（快速演示）")
+                    appendLine("1) 首页可见：功能厚度总览 + 快速演示入口")
                     appendLine("2) 输入页可见：随机样例 / 一键清空 / 诊断进度")
                     appendLine("3) 结果页可见：风险等级 / 影响范围 / 建议处理顺序 / 行动单导出")
                     appendLine("4) 场景库可见：分类计数 / 热门场景 / 一键回填并诊断")
@@ -445,7 +445,7 @@ fun NetSageApp(
                 }
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-review-summary", summary))
-                Toast.makeText(context, "功能核验摘要已复制", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "功能摘要已复制", Toast.LENGTH_SHORT).show()
             }
         )
 
@@ -463,16 +463,16 @@ fun NetSageApp(
                     state.showResult(demo)
                 },
                 ReviewShotStep("场景库与热门场景", "截图分类计数与热门场景一键诊断按钮。", "跳转场景库") { state.showScenarioLibrary() },
-                ReviewShotStep("审核演示与新增清单", "截图审核演示页/版本新增页作为收尾证明。", "跳转审核演示") { state.page = AppPage.REVIEW_DEMO },
+                ReviewShotStep("快速演示与新增清单", "截图快速演示页/版本新增页作为收尾证明。", "跳转快速演示") { state.page = AppPage.REVIEW_DEMO },
             ),
             onCopyShotScript = {
                 val script = """
-                    NetSage 审核截图顺序（建议）
+                    NetSage 截图顺序（建议）
                     1) 首页：功能厚度卡片 + 模块入口
                     2) 输入页：随机样例 / 一键清空 / 质量评分
                     3) 结果页：风险等级 / 影响范围 / 处置剧本 / 应急指挥卡
                     4) 场景库：分类计数 / 热门场景 / 层级筛选
-                    5) 审核演示页：一键演示 + 核验摘要复制
+                    5) 快速演示页：一键演示 + 核验摘要复制
                 """.trimIndent()
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-review-shot-script", script))
@@ -497,17 +497,17 @@ fun NetSageApp(
             onOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
             onCopySubmissionBrief = {
                 val brief = """
-                    NetSage 本版本功能增强说明（提审用）
+                    NetSage 本版本功能增强说明
                     1) 首页：功能厚度面板 + 能力评分条 + 快速开始集群
                     2) 输入页：随机样例/一键清空/诊断进度 + 输入质量评分 + 补全清单
                     3) 结果页：风险等级/影响范围/处置剧本/黄金15分钟应急指挥卡/行动单导出
                     4) 场景库：分类计数 + 热门场景 + 层级筛选 + 一键回填诊断
-                    5) 审核支持：一键审核演示、截图向导、核验摘要与截图脚本复制
+                    5) 审核支持：一键快速演示、截图向导、核验摘要与截图脚本复制
                     6) 工具箱：排障命令模板 + 判读提示复制
                 """.trimIndent()
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-submission-brief", brief))
-                Toast.makeText(context, "提审功能说明已复制", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "功能说明已复制", Toast.LENGTH_SHORT).show()
             }
         )
 

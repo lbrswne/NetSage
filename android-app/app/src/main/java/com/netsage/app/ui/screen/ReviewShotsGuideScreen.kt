@@ -63,7 +63,7 @@ fun ReviewShotsGuideScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
-                Text("审核截图向导", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("截图向导", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text("按 5 步完成截图采集，每步可一键跳转目标页面。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
             }
         }

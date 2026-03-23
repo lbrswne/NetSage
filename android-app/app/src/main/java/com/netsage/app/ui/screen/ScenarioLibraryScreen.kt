@@ -149,7 +149,7 @@ fun ScenarioLibraryScreen(
                         onClick = { onRunReviewDemo(firstHot) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("一键审核演示（场景→诊断结果）")
+                        Text("一键快速演示（场景→诊断结果）")
                     }
                 }
                 hotScenarios.forEachIndexed { index, item ->

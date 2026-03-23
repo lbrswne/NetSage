@@ -64,8 +64,8 @@ fun ReviewDemoScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
-                Text("审核演示模式", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("给应用市场审核员使用的一键演示入口：固定路径、固定结构、可重复核验。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+                Text("快速演示模式", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("用于快速演示的入口：固定路径、固定结构、可重复体验。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
             }
         }
 
@@ -85,7 +85,7 @@ fun ReviewDemoScreen(
             Text("开始一键演示")
         }
         OutlinedButton(onClick = onCopyReviewSummary, modifier = Modifier.fillMaxWidth()) {
-            Text("复制功能核验摘要")
+            Text("复制功能摘要")
         }
     }
 }
