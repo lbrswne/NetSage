@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -131,6 +132,12 @@ fun HomeScreen(
         OverviewStat("收藏诊断", savedReportCount.toString(), if (savedReportCount > 0) "可回看重点结果" else "尚未收藏结果"),
         OverviewStat("历史记录", historyCount.toString(), if (historyCount > 0) "支持继续回填分析" else "等待首次诊断沉淀"),
     )
+    val capabilityStats = listOf(
+        "诊断深度" to 5,
+        "场景覆盖" to 5,
+        "工具能力" to 4,
+        "审核可见" to 5,
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -214,10 +221,31 @@ fun HomeScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text("本版本功能厚度", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("新增可见功能模块：7 项（首页总览、十宫格入口、结果页专业报告+行动单、场景筛选、输入辅助、工具箱、版本新增清单）", style = MaterialTheme.typography.bodySmall)
+                    capabilityStats.forEach { (name, score) ->
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(name, style = MaterialTheme.typography.bodySmall)
+                                Text("$score/5", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                                repeat(5) { idx ->
+                                    val active = idx < score
+                                    Card(
+                                        modifier = Modifier.weight(1f),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                                        ),
+                                        shape = RoundedCornerShape(999.dp)
+                                    ) { Spacer(modifier = Modifier.padding(vertical = 4.dp)) }
+                                }
+                            }
+                        }
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(onClick = onQuickOpenFeatureShowcase, label = { Text("查看新增功能") })
                         AssistChip(onClick = onQuickOpenSamples, label = { Text("审核演示样例") })
