@@ -48,6 +48,14 @@ fun ScenarioLibraryScreen(
     var keyword by remember { mutableStateOf("") }
     val expandedIds = remember { mutableStateListOf<String>() }
     val presetTags = listOf("校园网", "宿舍", "Wi-Fi", "热点", "公司内网", "家庭宽带", "DNS", "TLS", "HTTP", "丢包")
+    val categoryCounts = FaultCategory.entries.associateWith { category -> scenarios.count { it.category == category } }
+    val hotScenarios = scenarios
+        .sortedByDescending { scenario ->
+            listOf("校园", "宿舍", "wifi", "网关", "tls", "dns")
+                .count { key -> (scenario.title + " " + scenario.symptoms).contains(key, ignoreCase = true) }
+        }
+        .take(3)
+
     val filteredByCategory = current?.let { c -> scenarios.filter { it.category == c } } ?: scenarios
     val shown = filteredByCategory.filter {
         keyword.isBlank() ||
@@ -83,6 +91,52 @@ fun ScenarioLibraryScreen(
                 Text("故障场景库", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text("离线浏览典型故障场景，快速比对现象、排查步骤与修复建议。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
                 Text("当前共 ${scenarios.size} 个场景，支持按分类与关键词快速收敛。", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text("场景规模总览", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    FaultCategory.entries.forEach { category ->
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(category.label, style = MaterialTheme.typography.labelMedium)
+                                Text((categoryCounts[category] ?: 0).toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+            border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("热门场景", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                hotScenarios.forEachIndexed { index, item ->
+                    Text("${index + 1}. [${item.category.label}] ${item.title}", style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
 
