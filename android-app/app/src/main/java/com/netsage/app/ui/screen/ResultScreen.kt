@@ -5,10 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -279,180 +279,199 @@ fun ResultScreen(
         "8-15 分钟：复测关键指标，若无改善立即切换 Top2/Top3"
     )
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onBack) {
-                Text("返回")
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onBack) {
+                    Text("返回")
+                }
             }
         }
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            color = Color.Transparent,
-            shadowElevation = 2.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .background(NetSageHeroGradient)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                color = Color.Transparent,
+                shadowElevation = 2.dp
             ) {
-                Text("NetSage 诊断报告", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
-                Text(
-                    top?.name ?: "暂无诊断结果",
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    confidenceText,
-                    color = Color.White.copy(alpha = 0.84f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                SeverityBadge(severity, severityColor)
+                Column(
+                    modifier = Modifier
+                        .background(NetSageHeroGradient)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("NetSage 诊断报告", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        top?.name ?: "暂无诊断结果",
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        confidenceText,
+                        color = Color.White.copy(alpha = 0.84f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    SeverityBadge(severity, severityColor)
+                }
             }
         }
 
         top?.let {
-            ReportBlock("问题概览") {
-                Text("最可能问题：${it.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("建议优先处理：${it.fix}", style = MaterialTheme.typography.bodyMedium)
-                Text("风险等级：$severity", style = MaterialTheme.typography.bodyMedium, color = severityColor)
-                Text("影响范围：$impactScope", style = MaterialTheme.typography.bodySmall)
-                Text("处理策略：先围绕主判断做首轮排查，再根据验证结果决定是否切换到 Top2 / Top3。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            item {
+                ReportBlock("问题概览") {
+                    Text("最可能问题：${it.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("建议优先处理：${it.fix}", style = MaterialTheme.typography.bodyMedium)
+                    Text("风险等级：$severity", style = MaterialTheme.typography.bodyMedium, color = severityColor)
+                    Text("影响范围：$impactScope", style = MaterialTheme.typography.bodySmall)
+                    Text("处理策略：先围绕主判断做首轮排查，再根据验证结果决定是否切换到 Top2 / Top3。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
 
         if (top?.evidence?.isNotEmpty() == true) {
-            ReportBlock("为什么这样判断") {
-                Text("当前主判断主要来自以下证据命中：", style = MaterialTheme.typography.bodyMedium)
-                top.evidence.forEach { evidence ->
-                    Text("• $evidence", style = MaterialTheme.typography.bodyMedium)
+            item {
+                ReportBlock("为什么这样判断") {
+                    Text("当前主判断主要来自以下证据命中：", style = MaterialTheme.typography.bodyMedium)
+                    top.evidence.forEach { evidence ->
+                        Text("• $evidence", style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         }
 
         if (actionSteps.isNotEmpty()) {
-            ReportBlock("交互式下一步任务流") {
-                val doneCount = taskStatuses.values.count { it == TaskStatus.DONE }
-                val invalidCount = taskStatuses.values.count { it == TaskStatus.INVALID }
-                val branchHint = when {
-                    invalidCount >= 2 -> "建议切换到 B 分支：补充日志后重诊断。"
-                    doneCount >= 2 -> "建议继续 A 分支：复测关键指标并收敛。"
-                    else -> "先完成前两步，再判断是否进入 A/B/C 分支。"
-                }
+            item {
+                ReportBlock("交互式下一步任务流") {
+                    val doneCount = taskStatuses.values.count { it == TaskStatus.DONE }
+                    val invalidCount = taskStatuses.values.count { it == TaskStatus.INVALID }
+                    val branchHint = when {
+                        invalidCount >= 2 -> "建议切换到 B 分支：补充日志后重诊断。"
+                        doneCount >= 2 -> "建议继续 A 分支：复测关键指标并收敛。"
+                        else -> "先完成前两步，再判断是否进入 A/B/C 分支。"
+                    }
 
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("执行进度：$doneCount/${actionSteps.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                    actionSteps.forEachIndexed { index, step ->
-                        Text("${index + 1}. ${step.title}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text(step.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                            TaskStatus.entries.forEach { status ->
-                                AssistChip(
-                                    onClick = {
-                                        taskStatuses[index] = status
-                                        onTaskStatusChange(index, status.name)
-                                    },
-                                    label = { Text(status.label) },
-                                    border = if (taskStatuses[index] == status) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
-                                )
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("执行进度：$doneCount/${actionSteps.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                        actionSteps.forEachIndexed { index, step ->
+                            Text("${index + 1}. ${step.title}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            Text(step.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                TaskStatus.entries.forEach { status ->
+                                    AssistChip(
+                                        onClick = {
+                                            taskStatuses[index] = status
+                                            onTaskStatusChange(index, status.name)
+                                        },
+                                        label = { Text(status.label) },
+                                        border = if (taskStatuses[index] == status) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                                    )
+                                }
                             }
                         }
+                        Text("分支建议：$branchHint", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                     }
-                    Text("分支建议：$branchHint", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
 
-        ReportBlock("应急指挥卡（黄金15分钟）") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                emergencyPlan.forEach { step ->
-                    Text("• $step", style = MaterialTheme.typography.bodySmall)
+        item {
+            ReportBlock("应急指挥卡（黄金15分钟）") {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    emergencyPlan.forEach { step ->
+                        Text("• $step", style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }
 
         if (playbookBranches.isNotEmpty()) {
-            ReportBlock("处置剧本模式") {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    playbookBranches.forEach { branch ->
-                        Text(branch.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        branch.actions.forEach { action ->
-                            Text("• $action", style = MaterialTheme.typography.bodySmall)
+            item {
+                ReportBlock("处置剧本模式") {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        playbookBranches.forEach { branch ->
+                            Text(branch.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            branch.actions.forEach { action ->
+                                Text("• $action", style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }
             }
         }
 
-        ReportBlock("适用与边界") {
-            Text("适用场景", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Text(fitText, style = MaterialTheme.typography.bodyMedium)
-            Text("不适用或需谨慎", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Text(notFitText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        item {
+            ReportBlock("适用与边界") {
+                Text("适用场景", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(fitText, style = MaterialTheme.typography.bodyMedium)
+                Text("不适用或需谨慎", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(notFitText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
 
         if (recommendedChecklists.isNotEmpty() || recommendedScenarios.isNotEmpty()) {
-            ReportBlock("关联排障资源") {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (recommendedChecklists.isNotEmpty()) {
-                        Text("推荐排障清单：${recommendedChecklists.first().title}", style = MaterialTheme.typography.bodyMedium)
-                        Text("用途：适合把当前判断转成更具体的逐步排查动作。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Button(
-                            onClick = { onOpenChecklists(recommendedChecklists.firstOrNull()?.id) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("去看推荐排障清单")
+            item {
+                ReportBlock("关联排障资源") {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        if (recommendedChecklists.isNotEmpty()) {
+                            Text("推荐排障清单：${recommendedChecklists.first().title}", style = MaterialTheme.typography.bodyMedium)
+                            Text("用途：适合把当前判断转成更具体的逐步排查动作。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Button(
+                                onClick = { onOpenChecklists(recommendedChecklists.firstOrNull()?.id) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("去看推荐排障清单")
+                            }
                         }
-                    }
-                    if (recommendedScenarios.isNotEmpty()) {
-                        Text("相关故障场景：${recommendedScenarios.first().title}", style = MaterialTheme.typography.bodyMedium)
-                        Text("用途：适合核对当前症状是否属于同类问题模式。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        OutlinedButton(
-                            onClick = { onOpenScenarios(recommendedScenarios.firstOrNull()?.id) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("去看相关故障场景")
+                        if (recommendedScenarios.isNotEmpty()) {
+                            Text("相关故障场景：${recommendedScenarios.first().title}", style = MaterialTheme.typography.bodyMedium)
+                            Text("用途：适合核对当前症状是否属于同类问题模式。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            OutlinedButton(
+                                onClick = { onOpenScenarios(recommendedScenarios.firstOrNull()?.id) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("去看相关故障场景")
+                            }
                         }
                     }
                 }
             }
         }
 
-        Text("候选原因", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(causes.mapIndexed { index, item -> index to item }) { (index, item) ->
-                CandidateCauseCard(item = item, index = index + 1)
+        item {
+            Text("候选原因", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        }
+
+        items(causes.mapIndexed { index, item -> index to item }) { (index, item) ->
+            CandidateCauseCard(item = item, index = index + 1)
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = onSaveReport, modifier = Modifier.weight(1f)) {
+                    Text("收藏本次诊断")
+                }
+                OutlinedButton(onClick = onCopyReport, modifier = Modifier.weight(1f)) {
+                    Text("复制报告")
+                }
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = onSaveReport, modifier = Modifier.weight(1f)) {
-                Text("收藏本次诊断")
-            }
-            OutlinedButton(onClick = onCopyReport, modifier = Modifier.weight(1f)) {
-                Text("复制报告")
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onCopyIncidentBrief, modifier = Modifier.weight(1f)) {
-                Text("复制故障简报")
-            }
-            OutlinedButton(onClick = onExportActionPlan, modifier = Modifier.weight(1f)) {
-                Text("导出行动单")
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onCopyIncidentBrief, modifier = Modifier.weight(1f)) {
+                    Text("复制故障简报")
+                }
+                OutlinedButton(onClick = onExportActionPlan, modifier = Modifier.weight(1f)) {
+                    Text("导出行动单")
+                }
             }
         }
     }
