@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,7 +55,7 @@ fun ScenarioLibraryScreen(
     var currentLayer by remember { mutableStateOf<String?>(null) }
     var favoritesOnly by remember { mutableStateOf(false) }
     val expandedIds = remember { mutableStateListOf<String>() }
-    val presetTags = listOf("校园网", "宿舍", "Wi-Fi", "热点", "公司内网", "家庭宽带", "DNS", "TLS", "HTTP", "丢包")
+    val presetTags = listOf("校园网", "宿舍", "Wi‑Fi", "热点", "公司内网", "家庭宽带", "DNS", "TLS", "HTTP", "丢包")
     val layerTags = scenarios.flatMap { it.layers }.distinct()
     val categoryCounts = FaultCategory.entries.associateWith { category -> scenarios.count { it.category == category } }
     val hotScenarios = scenarios
@@ -74,58 +75,64 @@ fun ScenarioLibraryScreen(
             it.fixHints.any { hint -> hint.contains(keyword, ignoreCase = true) }
     }.sortedBy { if (it.id in favoriteIds) 0 else 1 }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = onBack) { Text("返回") }
-        }
-
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            color = Color.Transparent,
-            shadowElevation = 2.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .background(NetSageHeroGradient)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
-                Text("故障场景库", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("离线浏览典型故障场景，快速比对现象、排查步骤与修复建议。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
-                Text("当前共 ${scenarios.size} 个场景，支持按分类与关键词快速收敛。", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onBack) { Text("返回") }
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+        item {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                color = Color.Transparent,
+                shadowElevation = 2.dp
             ) {
-                Text("场景规模总览", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    FaultCategory.entries.forEach { category ->
-                        Card(
-                            modifier = Modifier.weight(1f),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                            shape = RoundedCornerShape(14.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(category.label, style = MaterialTheme.typography.labelMedium)
-                                Text((categoryCounts[category] ?: 0).toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Column(
+                    modifier = Modifier
+                        .background(NetSageHeroGradient)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
+                    Text("故障场景库", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text("离线浏览典型故障场景，快速比对现象、排查步骤与修复建议。", color = Color.White.copy(alpha = 0.84f), style = MaterialTheme.typography.bodyMedium)
+                    Text("当前共 ${scenarios.size} 个场景，支持按分类与关键词快速收敛。", color = Color.White.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text("场景规模总览", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        FaultCategory.entries.forEach { category ->
+                            Card(
+                                modifier = Modifier.weight(1f),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(category.label, style = MaterialTheme.typography.labelMedium)
+                                    Text((categoryCounts[category] ?: 0).toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
@@ -133,184 +140,187 @@ fun ScenarioLibraryScreen(
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
-            border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("热门场景", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                hotScenarios.firstOrNull()?.let { firstHot ->
-                    Button(
-                        onClick = { onRunReviewDemo(firstHot) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("一键快速演示（场景→诊断结果）")
-                    }
-                }
-                hotScenarios.forEachIndexed { index, item ->
-                    Text("${index + 1}. [${item.category.label}] ${item.title}", style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(
-                        onClick = { onUseScenario(item) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("用这个场景去诊断")
-                    }
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text("搜索与筛选", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                OutlinedTextField(
-                    value = keyword,
-                    onValueChange = { keyword = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("搜索场景 / 现象 / 修复建议") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AssistChip(onClick = { current = null }, label = { Text("全部") })
-                    FaultCategory.entries.forEach { category ->
-                        AssistChip(onClick = { current = category }, label = { Text(category.label) })
-                    }
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    presetTags.forEach { tag ->
-                        AssistChip(onClick = { keyword = tag }, label = { Text(tag) })
-                    }
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AssistChip(onClick = { currentLayer = null }, label = { Text("全部层级") })
-                    layerTags.forEach { layer ->
-                        AssistChip(onClick = { currentLayer = layer }, label = { Text(layer) })
-                    }
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AssistChip(onClick = { favoritesOnly = false }, label = { Text("全部场景") })
-                    AssistChip(onClick = { favoritesOnly = true }, label = { Text("仅看收藏") })
-                }
-                Text(
-                    "当前筛出 ${shown.size} 项。先按分类，再按网络层级（校园/宿舍/家宽/企业/热点）筛选。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        if (highlightedId != null) {
+        item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(22.dp),
                 colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
                 border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("已定位到推荐场景", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Text("下方带高亮边框的卡片即为本次诊断推荐项。", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(shown, key = { it.id }) { item ->
-                val expanded = item.id in expandedIds || highlightedId == item.id
-                val isHighlighted = highlightedId == item.id
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(
-                            if (isHighlighted) Modifier.border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(22.dp),
-                            ) else Modifier
-                        ),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("[${item.category.label}] ${item.title}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            OutlinedButton(onClick = { onToggleFavorite(item.id) }) {
-                                Text(if (item.id in favoriteIds) "取消收藏" else "收藏")
-                            }
+                    Text("热门场景", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    hotScenarios.firstOrNull()?.let { firstHot ->
+                        Button(
+                            onClick = { onRunReviewDemo(firstHot) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("一键快速演示（场景→诊断结果）")
                         }
-                        if (item.layers.isNotEmpty()) {
-                            Text("层级：${item.layers.joinToString(" / ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                        }
-                        Text("现象：${item.symptoms}", style = MaterialTheme.typography.bodyMedium)
-                        if (expanded) {
-                            Text("排查：${item.checks.joinToString("；")}", style = MaterialTheme.typography.bodySmall)
-                            Text("修复：${item.fixHints.joinToString("；")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                            Button(
-                                onClick = { onUseScenario(item) },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("回填并诊断")
-                            }
-                            OutlinedButton(
-                                onClick = {
-                                    if (expanded) expandedIds.remove(item.id) else expandedIds.add(item.id)
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(if (expanded) "收起详情" else "展开详情")
-                            }
+                    }
+                    hotScenarios.forEachIndexed { index, item ->
+                        Text("${index + 1}. [${item.category.label}] ${item.title}", style = MaterialTheme.typography.bodySmall)
+                        OutlinedButton(
+                            onClick = { onUseScenario(item) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("用这个场景去诊断")
                         }
                     }
                 }
             }
         }
 
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("返回首页")
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text("搜索与筛选", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    OutlinedTextField(
+                        value = keyword,
+                        onValueChange = { keyword = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("搜索场景 / 现象 / 修复建议") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AssistChip(onClick = { current = null }, label = { Text("全部") })
+                        FaultCategory.entries.forEach { category ->
+                            AssistChip(onClick = { current = category }, label = { Text(category.label) })
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        presetTags.forEach { tag ->
+                            AssistChip(onClick = { keyword = tag }, label = { Text(tag) })
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AssistChip(onClick = { currentLayer = null }, label = { Text("全部层级") })
+                        layerTags.forEach { layer ->
+                            AssistChip(onClick = { currentLayer = layer }, label = { Text(layer) })
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AssistChip(onClick = { favoritesOnly = false }, label = { Text("全部场景") })
+                        AssistChip(onClick = { favoritesOnly = true }, label = { Text("仅看收藏") })
+                    }
+                    Text(
+                        "当前筛出 ${shown.size} 项。先按分类，再按网络层级（校园/宿舍/家宽/企业/热点）筛选。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (highlightedId != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = NetSageSoftHighlight),
+                    border = BorderStroke(1.dp, NetSageSoftHighlightBorder)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("已定位到推荐场景", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text("下方带高亮边框的卡片即为本次诊断推荐项。", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+
+        items(shown, key = { it.id }) { item ->
+            val expanded = item.id in expandedIds || highlightedId == item.id
+            val isHighlighted = highlightedId == item.id
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (isHighlighted) Modifier.border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(22.dp),
+                        ) else Modifier
+                    ),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("[${item.category.label}] ${item.title}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        OutlinedButton(onClick = { onToggleFavorite(item.id) }) {
+                            Text(if (item.id in favoriteIds) "取消收藏" else "收藏")
+                        }
+                    }
+                    if (item.layers.isNotEmpty()) {
+                        Text("层级：${item.layers.joinToString(" / ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                    Text("现象：${item.symptoms}", style = MaterialTheme.typography.bodyMedium)
+                    if (expanded) {
+                        Text("排查：${item.checks.joinToString("；")}", style = MaterialTheme.typography.bodySmall)
+                        Text("修复：${item.fixHints.joinToString("；")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = { onUseScenario(item) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("回填并诊断")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                if (expanded) expandedIds.remove(item.id) else expandedIds.add(item.id)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(if (expanded) "收起详情" else "展开详情")
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                Text("返回首页")
+            }
         }
     }
 }
