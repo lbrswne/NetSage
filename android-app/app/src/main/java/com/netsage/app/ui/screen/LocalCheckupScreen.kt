@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.netsage.app.ui.theme.NetSageHeroGradient
 import com.netsage.app.ui.theme.NetSageSoftHighlight
 import com.netsage.app.ui.theme.NetSageSoftHighlightBorder
+import com.netsage.app.util.LocalDocumentIo
 
 enum class LocalCheckupMode(val label: String) {
     QUICK("快速体检"),
@@ -85,7 +86,8 @@ fun LocalCheckupScreen(
     var logText by remember { mutableStateOf("") }
     val normalizedHost = normalizeHostInput(host)
     val port = portText.toIntOrNull()
-    val inputValid = normalizedHost.isNotBlank() && port != null && port in 1..65535
+    val logLengthValid = logText.length <= LocalDocumentIo.MAX_LOG_CHARS
+    val inputValid = normalizedHost.isNotBlank() && port != null && port in 1..65535 && logLengthValid
 
     Column(
         modifier = Modifier
@@ -149,6 +151,14 @@ fun LocalCheckupScreen(
                     }
                 }
 
+                if (protocol == CheckProtocol.HTTP) {
+                    Text(
+                        "HTTP 不加密。仅在你确认目标确实使用明文 HTTP 时选择；NetSage 不会把 HTTPS 自动降级为 HTTP。",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
                 OutlinedTextField(
                     value = host,
                     onValueChange = { host = it },
@@ -191,6 +201,10 @@ fun LocalCheckupScreen(
                         onValueChange = { logText = it },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("补充日志或故障描述（可选）") },
+                        supportingText = {
+                            Text("${logText.length} / ${LocalDocumentIo.MAX_LOG_CHARS} 字符")
+                        },
+                        isError = !logLengthValid,
                         minLines = 6,
                         enabled = !isRunning
                     )
