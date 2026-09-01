@@ -30,7 +30,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
@@ -346,19 +348,19 @@ class AndroidProbeRunner(
     private suspend fun httpPayload(
         target: ProbeTarget,
         timeoutMillis: Long,
-    ): StepPayload = runInterruptible(Dispatchers.IO) {
+    ): StepPayload = withContext(Dispatchers.IO) {
         val deadline = elapsedClock() + timeoutMillis.coerceAtLeast(MIN_TIMEOUT_MILLIS)
         var currentUrl = target.toUrl()
         val redirectChain = mutableListOf<String>()
         val statusChain = mutableListOf<Int>()
         val visited = linkedSetOf<String>()
-        var responseMessage = ""
-        var contentType = ""
+        var responseMessage: String
+        var contentType: String
         var firstResponseMillis: Long? = null
 
         while (true) {
             if (!visited.add(currentUrl.toExternalForm())) {
-                return@runInterruptible StepPayload(
+                return@withContext StepPayload(
                     status = ProbeStatus.FAILURE,
                     evidence = mapOf("redirectChain" to redirectChain.joinToString(" | ")),
                     error = ProbeError("HTTP_REDIRECT_LOOP", "Redirect loop detected at $currentUrl"),
@@ -375,7 +377,7 @@ class AndroidProbeRunner(
                 connection.connectTimeout = remainingMillis.toIntTimeout()
                 connection.readTimeout = remainingMillis.toIntTimeout()
                 connection.setRequestProperty("User-Agent", "NetSage/0.2 local probe")
-                val statusCode = connection.responseCode
+                val statusCode = connection.awaitResponseCode()
                 if (firstResponseMillis == null) {
                     firstResponseMillis = elapsedClock() - responseStarted
                 }
@@ -403,7 +405,7 @@ class AndroidProbeRunner(
                             shouldRedirect && redirectChain.size >= target.maxRedirects
                         ).toString(),
                     )
-                    return@runInterruptible StepPayload(
+                    return@withContext StepPayload(
                         status = if (statusCode >= 500) ProbeStatus.FAILURE else ProbeStatus.SUCCESS,
                         evidence = evidence,
                         rawEvidence = buildString {
@@ -416,7 +418,7 @@ class AndroidProbeRunner(
 
                 val nextUrl = URL(currentUrl, location)
                 if (nextUrl.protocol != "http" && nextUrl.protocol != "https") {
-                    return@runInterruptible StepPayload(
+                    return@withContext StepPayload(
                         status = ProbeStatus.FAILURE,
                         evidence = mapOf(
                             "statusCode" to statusCode.toString(),
@@ -429,7 +431,7 @@ class AndroidProbeRunner(
                     )
                 }
                 if (!isSameRedirectHost(target.normalizedHost(), nextUrl.host)) {
-                    return@runInterruptible StepPayload(
+                    return@withContext StepPayload(
                         status = ProbeStatus.FAILURE,
                         evidence = mapOf(
                             "statusCode" to statusCode.toString(),
@@ -444,7 +446,7 @@ class AndroidProbeRunner(
                     )
                 }
                 if (redirectChain.size >= target.maxRedirects) {
-                    return@runInterruptible StepPayload(
+                    return@withContext StepPayload(
                         status = ProbeStatus.FAILURE,
                         evidence = mapOf(
                             "statusCode" to statusCode.toString(),
@@ -466,6 +468,21 @@ class AndroidProbeRunner(
         }
         @Suppress("UNREACHABLE_CODE")
         throw IllegalStateException("HTTP probe loop ended unexpectedly")
+    }
+
+    /**
+     * HttpURLConnection does not reliably react to Thread.interrupt() while waiting for
+     * response headers. Disconnect it explicitly when the owning coroutine is cancelled.
+     */
+    private suspend fun HttpURLConnection.awaitResponseCode(): Int = supervisorScope {
+        val pendingResponse = async(Dispatchers.IO) { responseCode }
+        try {
+            pendingResponse.await()
+        } catch (cancelled: CancellationException) {
+            disconnect()
+            pendingResponse.cancel()
+            throw cancelled
+        }
     }
 
     private fun validate(request: ProbeRequest): String? {

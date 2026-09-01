@@ -14,6 +14,8 @@ NetSage 是一个本地优先的 Android 网络诊断工作台。主版本不要
 
 主动检测只访问用户确认的目标地址；它不经过 NetSage 服务器。主版本不包含遥测、广告 SDK、云数据库、Ping、Traceroute、抓包或后台持续监控。
 
+HTTPS 是默认协议。只有用户明确选择 HTTP 时，App 才会发起明文 HTTP 探测；它不会把 HTTPS 目标自动降级为 HTTP。
+
 ## 目录
 
 - `android-app/`：Kotlin + Jetpack Compose 客户端和本地诊断引擎。
@@ -71,3 +73,11 @@ Default local-first v0.2 showcase branch. Active network probes run on the devic
 cd android-app
 .\gradlew.bat testDebugUnitTest assembleDebug
 ```
+
+连接 Android 模拟器或真机后，可运行真实回环网络集成测试：
+
+```powershell
+.\gradlew.bat connectedDebugAndroidTest
+```
+
+集成测试使用设备本机的 `127.0.0.1`、MockWebServer 和自签名测试证书，覆盖 HTTP 成功、同主机重定向、连接拒绝、响应超时、TLS 证书链异常和用户取消。测试不访问外网，也不会启动 NetSage 后端。
