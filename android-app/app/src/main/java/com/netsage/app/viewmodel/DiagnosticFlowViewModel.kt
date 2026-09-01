@@ -329,6 +329,8 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
         runtimeObservations: List<RuntimeProbeObservation>,
         snapshot: ProbeNetworkSnapshot? = null,
     ): List<DiagnosticHypothesis> {
+        disconnectedNetworkHypothesis(snapshot)?.let { return listOf(it) }
+
         val evidenceText = buildString {
             if (inputLog.isNotBlank()) appendLine(inputLog)
             snapshot?.let { appendSnapshotEvidence(it) }
@@ -488,4 +490,28 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
         observation.status == RuntimeProbeStatus.SUCCESS &&
             !(observation.kind == ProbeKind.HTTP &&
                 observation.evidence["statusCode"]?.toIntOrNull() in 400..599)
+}
+
+internal fun disconnectedNetworkHypothesis(
+    snapshot: ProbeNetworkSnapshot?,
+): DiagnosticHypothesis? {
+    if (snapshot == null || snapshot.connected) return null
+    return DiagnosticHypothesis(
+        code = "network.device_offline",
+        title = "当前设备未连接到可用网络",
+        category = "CONNECTION",
+        priority = 95,
+        evidenceStrength = EvidenceStrength.HIGH,
+        matchedEvidence = listOf(
+            "系统网络快照显示 connected=false",
+            "当前没有可用的本地 IP、网关或 DNS 路径",
+        ),
+        rationale = "设备没有活动网络连接时，后续 DNS、TCP、TLS 和 HTTP 检测会连锁失败。应先恢复基础连接，再判断目标服务是否异常。",
+        recommendedActions = listOf(
+            "关闭飞行模式，并启用 Wi-Fi 或移动数据",
+            "确认已连接到可用热点或蜂窝网络",
+            "恢复连接后使用“修复后复测”重新运行全部探测",
+        ),
+        ruleIds = listOf("network.device_offline"),
+    )
 }
