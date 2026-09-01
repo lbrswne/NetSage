@@ -57,14 +57,14 @@ android {
 
 ```text
 Test instructions:
-1. Open app and paste sample log text on the first screen.
-2. Tap "开始诊断".
-3. Verify that Top3 causes and suggestions are shown.
-4. Tap "复制报告" and paste into any text editor to verify output.
+1. Open the app and choose Quick Checkup, Log Diagnosis, or Combined Diagnosis.
+2. For an active check, enter a target you are authorized to test and start the run.
+3. Verify the network snapshot, DNS/TCP/TLS/HTTP timeline, ranked hypotheses, and evidence.
+4. Use Retest after a change, or export the local session as Markdown or JSON.
 
 No account is required for testing.
 No in-app purchase.
-Core feature depends on network request to backend diagnose API.
+There is no NetSage backend, telemetry, or advertising SDK. Rules, logs, results, and history are processed and stored locally. Active checks connect directly to the target confirmed by the user.
 ```
 
 ## 5) 发布建议节奏

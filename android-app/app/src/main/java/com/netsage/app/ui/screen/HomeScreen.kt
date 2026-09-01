@@ -128,7 +128,7 @@ fun HomeScreen(
     val allModules = modules
     val overviewStats = listOf(
         OverviewStat("收藏诊断", savedReportCount.toString(), if (savedReportCount > 0) "可回看重点结果" else "尚未收藏结果"),
-        OverviewStat("历史记录", historyCount.toString(), if (historyCount > 0) "支持继续回填分析" else "等待首次诊断沉淀"),
+        OverviewStat("诊断会话", historyCount.toString(), if (historyCount > 0) "可查看证据与复测" else "等待首次诊断沉淀"),
     )
 
     LazyColumn(
@@ -153,13 +153,13 @@ fun HomeScreen(
                 ) {
                     Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                     Text(
-                        "离线网络诊断控制台",
+                        "本地优先网络诊断台",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "单机版网络问题工作台：默认本地处理与本地保存，适合快速诊断、复盘与知识查阅。",
+                        "日志与规则在本机处理；主动检测只连接你确认的目标地址，不经过 NetSage 服务器。",
                         color = Color.White.copy(alpha = 0.84f),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -168,21 +168,21 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        HomeBadge("单机版")
+                        HomeBadge("本地优先")
                         HomeBadge("无需登录")
-                        HomeBadge("无需联网")
-                        HomeBadge("本地处理")
+                        HomeBadge("无自建后端")
+                        HomeBadge("无遥测")
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         Button(onClick = onQuickOpenInput, modifier = Modifier.weight(1f)) {
-                            Text("开始诊断")
+                            Text("日志诊断")
                         }
                         OutlinedButton(
                             onClick = onQuickOpenHistory,
                             modifier = Modifier.weight(1f),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.38f))
                         ) {
-                            Text("查看历史", color = Color.White)
+                            Text("诊断会话", color = Color.White)
                         }
                     }
                 }
@@ -248,7 +248,7 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text("新手引导", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("推荐路径：先用样例体验 → 再贴真实日志 → 查看结果页“下一步行动”执行排查。", style = MaterialTheme.typography.bodySmall)
+                    Text("推荐路径：先用样例体验日志诊断 → 再运行快速体检 → 修复后使用复测对比结果。", style = MaterialTheme.typography.bodySmall)
 FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)

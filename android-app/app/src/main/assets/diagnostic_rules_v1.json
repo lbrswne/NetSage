@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "ruleSetId": "netsage.local.diagnostic.v1",
+  "rules": [
+    {
+      "id": "tls.certificate_expired",
+      "title": "TLS 证书已过期",
+      "priority": "P1",
+      "order": 10,
+      "positiveKinds": ["TLS_EXPIRED"],
+      "explanation": "日志明确表明目标证书已经超过有效期。",
+      "nextSteps": ["核对设备系统时间", "检查服务端证书有效期并更新证书", "更新后重新执行 TLS 握手"]
+    },
+    {
+      "id": "tls.hostname_mismatch",
+      "title": "TLS 证书域名不匹配",
+      "priority": "P1",
+      "order": 20,
+      "positiveKinds": ["TLS_HOSTNAME_MISMATCH"],
+      "explanation": "证书中的主机名或 SAN 与当前访问域名不一致。",
+      "nextSteps": ["确认访问域名是否正确", "检查证书 SAN 列表", "检查代理是否改写 TLS 连接"]
+    },
+    {
+      "id": "dns.nxdomain",
+      "title": "DNS 返回域名不存在",
+      "priority": "P1",
+      "order": 30,
+      "positiveKinds": ["DNS_NXDOMAIN"],
+      "conflictKinds": ["DNS_SERVFAIL", "DNS_TIMEOUT"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "DNS 明确返回 NXDOMAIN，通常表示域名或记录不存在。",
+      "nextSteps": ["核对域名拼写", "检查权威 DNS 记录", "使用另一递归 DNS 服务器对照查询"]
+    },
+    {
+      "id": "tls.certificate_chain",
+      "title": "TLS 证书链验证失败",
+      "priority": "P1",
+      "order": 40,
+      "positiveKinds": ["TLS_CHAIN_ERROR"],
+      "explanation": "客户端无法建立到受信任根证书的完整验证链。",
+      "nextSteps": ["检查服务端是否发送完整中间证书链", "检查本机信任库", "排查代理替换证书的情况"]
+    },
+    {
+      "id": "tcp.connection_refused",
+      "title": "目标端口拒绝连接",
+      "priority": "P1",
+      "order": 50,
+      "positiveKinds": ["TCP_REFUSED"],
+      "conflictKinds": ["TCP_TIMEOUT"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "目标主机或中间设备明确拒绝 TCP 连接。",
+      "nextSteps": ["确认目标端口与协议", "检查服务是否监听", "检查本机和目标侧防火墙策略"]
+    },
+    {
+      "id": "dns.servfail",
+      "title": "DNS 服务器处理失败",
+      "priority": "P2",
+      "order": 60,
+      "positiveKinds": ["DNS_SERVFAIL"],
+      "conflictKinds": ["DNS_NXDOMAIN"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "递归或权威 DNS 服务器未能完成查询。",
+      "nextSteps": ["更换递归 DNS 服务器对照测试", "检查权威服务器与 DNSSEC 配置", "稍后重试并记录是否间歇发生"]
+    },
+    {
+      "id": "dns.timeout",
+      "title": "DNS 查询超时",
+      "priority": "P2",
+      "order": 70,
+      "positiveKinds": ["DNS_TIMEOUT"],
+      "conflictKinds": ["DNS_NXDOMAIN", "DNS_SERVFAIL"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "DNS 请求未在预期时间内收到响应。",
+      "nextSteps": ["检查 DNS 服务器地址与基础连通性", "切换网络或 DNS 服务器对照", "排查 UDP/TCP 53 端口策略"]
+    },
+    {
+      "id": "tcp.connection_timeout",
+      "title": "TCP 连接超时",
+      "priority": "P2",
+      "order": 80,
+      "positiveKinds": ["TCP_TIMEOUT"],
+      "conflictKinds": ["TCP_REFUSED"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "TCP 连接没有在超时时间内完成，可能存在路由、过滤或服务无响应问题。",
+      "nextSteps": ["确认目标地址与端口", "对照测试同网段和其他网络", "检查路由及防火墙丢弃策略"]
+    },
+    {
+      "id": "network.ip_version_mismatch",
+      "title": "IPv4/IPv6 路径或地址族不匹配",
+      "priority": "P2",
+      "order": 90,
+      "positiveKinds": ["IP_VERSION_MISMATCH"],
+      "explanation": "日志明确显示地址族不受支持，或 IPv4 与 IPv6 路径表现不一致。",
+      "nextSteps": ["分别解析 A 与 AAAA 记录", "分别测试 IPv4 和 IPv6 路径", "检查应用与网络的地址族配置"]
+    },
+    {
+      "id": "network.captive_portal",
+      "title": "网络可能需要门户认证",
+      "priority": "P2",
+      "order": 100,
+      "positiveKinds": ["CAPTIVE_PORTAL"],
+      "conflictKinds": ["PROXY_DETECTED"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "网络流量被引导至登录或认证门户。",
+      "nextSteps": ["打开系统网络登录页面", "完成认证后重新测试", "检查认证是否过期或设备数是否受限"]
+    },
+    {
+      "id": "network.packet_loss",
+      "title": "链路存在丢包",
+      "priority": "P2",
+      "order": 110,
+      "positiveKinds": ["PACKET_LOSS"],
+      "explanation": "日志包含可量化的丢包结果，链路质量可能不稳定。",
+      "nextSteps": ["在不同时间和位置重复测试", "对比有线、Wi-Fi 与热点", "检查无线干扰和物理链路错误"]
+    },
+    {
+      "id": "tls.handshake_failure",
+      "title": "TLS 握手失败",
+      "priority": "P2",
+      "order": 120,
+      "positiveKinds": ["TLS_HANDSHAKE_FAILURE"],
+      "conflictKinds": ["TLS_EXPIRED", "TLS_HOSTNAME_MISMATCH", "TLS_CHAIN_ERROR"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "TLS 握手未完成；若同时存在具体证书证据，应优先处理具体证书问题。",
+      "nextSteps": ["检查客户端与服务端 TLS 版本", "核对密码套件", "检查证书链、系统时间和中间代理"]
+    },
+    {
+      "id": "http.server_error",
+      "title": "HTTP 服务端或网关错误",
+      "priority": "P2",
+      "order": 130,
+      "positiveHttpStatusRanges": [{"min": 500, "max": 599}],
+      "explanation": "HTTP 5xx 表示服务端、上游或网关未能正常完成请求。",
+      "nextSteps": ["记录具体状态码与请求时间", "区分网关响应和源站响应", "检查服务日志、上游健康与超时配置"]
+    },
+    {
+      "id": "network.proxy_detected",
+      "title": "代理配置可能影响连接",
+      "priority": "P3",
+      "order": 140,
+      "positiveKinds": ["PROXY_DETECTED"],
+      "conflictKinds": ["CAPTIVE_PORTAL"],
+      "conflictPenaltyLevels": 1,
+      "explanation": "日志显示连接经过代理或需要代理认证。",
+      "nextSteps": ["核对代理地址、端口与认证信息", "在允许的环境中绕过代理对照测试", "检查代理是否改写 DNS 或 TLS"]
+    },
+    {
+      "id": "http.client_error",
+      "title": "HTTP 客户端或访问策略错误",
+      "priority": "P3",
+      "order": 150,
+      "positiveHttpStatusRanges": [{"min": 400, "max": 499}],
+      "explanation": "HTTP 4xx 表示请求、认证、权限或限流条件未满足。",
+      "nextSteps": ["根据具体状态码检查请求参数", "核对认证与访问权限", "遇到 429 时遵循重试间隔"]
+    }
+  ]
+}

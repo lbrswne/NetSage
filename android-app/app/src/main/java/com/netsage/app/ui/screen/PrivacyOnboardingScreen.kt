@@ -58,7 +58,7 @@ fun PrivacyOnboardingScreen(
                 Text("NetSage", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text("欢迎使用", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    "当前版本为单机版，主要在本地完成诊断与记录保存。首次使用前，请先阅读并确认《用户协议》与《隐私政策》。",
+                    "当前版本不依赖 NetSage 服务器，在本机完成诊断与记录保存。主动检测只连接你确认的目标地址。首次使用前，请先阅读并确认相关条款。",
                     color = Color.White.copy(alpha = 0.84f),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -78,6 +78,8 @@ fun PrivacyOnboardingScreen(
                 Text("使用前确认", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text("• 本应用当前为单机版，无需登录。", style = MaterialTheme.typography.bodyMedium)
                 Text("• 诊断历史、收藏记录等默认仅保存在本地设备。", style = MaterialTheme.typography.bodyMedium)
+                Text("• 主动检测会访问您指定的目标地址，但日志和结果不会上传给 NetSage。", style = MaterialTheme.typography.bodyMedium)
+                Text("• 本应用不包含遥测、广告 SDK 或云端数据库。", style = MaterialTheme.typography.bodyMedium)
                 Text("• 诊断结果用于辅助判断，不构成专业承诺或结果担保。", style = MaterialTheme.typography.bodyMedium)
             }
         }

@@ -224,7 +224,7 @@ private fun CandidateCauseCard(item: CauseItem, index: Int) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text("Top$index · ${item.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text("置信度 ${(item.confidence * 100).toInt()}%", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text("规则证据强度 ${(item.confidence * 100).toInt()}/100", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             ConfidenceBar(item.confidence)
             Text("建议：${item.fix}", style = MaterialTheme.typography.bodyMedium)
             if (item.evidence.isNotEmpty()) {
@@ -260,7 +260,7 @@ fun ResultScreen(
         "中优先级" -> Color(0xFFD78B13)
         else -> Color(0xFF2D7A46)
     }
-    val confidenceText = top?.let { "当前主判断置信度约 ${(it.confidence * 100).toInt()}%，建议优先按主判断推进首轮排查。" }
+    val confidenceText = top?.let { "当前主判断的规则证据强度为 ${(it.confidence * 100).toInt()}/100；这是排序分数而非统计概率，建议结合现场证据复核。" }
         ?: "当前暂无可用诊断结果。"
     val actionSteps = buildActionSteps(top, recommendedChecklists, recommendedScenarios)
     val playbookBranches = buildPlaybookBranches(top, recommendedChecklists, recommendedScenarios)

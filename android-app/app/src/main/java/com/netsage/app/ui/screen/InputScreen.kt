@@ -88,6 +88,7 @@ fun InputScreen(
     initialText: String = "",
     isLoading: Boolean = false,
     onFillSample: () -> String = { "" },
+    onImportLog: () -> Unit = {},
     onOpenUserAgreement: () -> Unit = {},
     onOpenPrivacyPolicy: () -> Unit = {},
     onBackHome: () -> Unit = {},
@@ -219,6 +220,13 @@ fun InputScreen(
                         Text("一键清空")
                     }
                 }
+                OutlinedButton(
+                    onClick = onImportLog,
+                    enabled = !isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("从本机导入日志文本")
+                }
                 Button(
                     onClick = { onDiagnose(logText.value) },
                     enabled = logText.value.isNotBlank() && !isLoading,
@@ -311,6 +319,7 @@ fun InputScreen(
             ) {
                 Text("录入说明", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text("• 支持粘贴日志片段、错误信息、网关报错、DNS / TLS / HTTP 异常描述", style = MaterialTheme.typography.bodySmall)
+                Text("• 支持使用系统文件选择器导入纯文本日志，不需要存储权限", style = MaterialTheme.typography.bodySmall)
                 Text("• 当前为单机版，本页输入内容默认仅用于本地诊断与本地记录", style = MaterialTheme.typography.bodySmall)
             }
         }

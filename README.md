@@ -1,14 +1,24 @@
-NetSage Android (MVP)
-目标：做一个可上架的安卓应用，核心是“网络故障智能诊断”。
+# NetSage Android v0.2.0
 
-MVP 功能
-上传/粘贴网络日志
-输出 Top3 根因 + 修复建议
-导出排障报告（文本）
-目录
-docs/：PRD、路线图、上架清单
-android-app/：Android 客户端（Kotlin + Compose）
-backend/：诊断 API（FastAPI）
+NetSage 是一个本地优先的 Android 网络诊断工作台。主版本不要求登录，不依赖自建服务器，也不会把日志、诊断结果或使用数据上传给 NetSage。
+
+## 当前功能
+
+- 日志诊断：粘贴、从本机导入或从其他应用分享文本，使用版本化本地规则生成 Top 3 诊断假设。
+- 快速体检：读取当前连接、IP、网关、DNS、IPv4/IPv6 等网络快照，并依次执行 DNS、TCP、TLS 与 HTTP 检测。
+- 组合诊断：把主动探测证据与用户日志放入同一条诊断会话。
+- 可解释结果：显示匹配证据、冲突证据、规则优先级和下一步行动；规则分数不是统计概率。
+- 修复后复测：比较检测状态、耗时、网络环境和诊断原因变化。
+- 本地会话：最多保存 50 条完整诊断会话，可删除或清空。
+- 报告导出：通过 Android 系统界面导出 Markdown/JSON，或使用系统分享面板发送。
+
+主动检测只访问用户确认的目标地址；它不经过 NetSage 服务器。主版本不包含遥测、广告 SDK、云数据库、Ping、Traceroute、抓包或后台持续监控。
+
+## 目录
+
+- `android-app/`：Kotlin + Jetpack Compose 客户端和本地诊断引擎。
+- `docs/`：产品、发布和测试文档。
+- `backend/`：早期 FastAPI 架构实验；`main` Android 应用不调用它。
 
 
 ## Author
@@ -33,26 +43,31 @@ The project reflects strong ownership, structured troubleshooting, and the abili
 This repository maintains two runnable variants of NetSage:
 
 - **offline-version**
-Offline single-device version (no backend dependency).
-Designed for low-cost release path and easier store compliance.
+Earlier offline single-device release line.
 
 - **online-version**
 Network-enabled version (Android + backend API workflow).
 Preserves the original online diagnosis architecture for future cloud deployment.
 
 - **main**
-Default showcase branch (currently aligned with the latest stable delivery).
+Default local-first v0.2 showcase branch. Active network probes run on the device and do not require a NetSage backend.
 
 ---
 
 本仓库维护 NetSage 的两个可运行版本：
 
-- **offline-version（无网版）**
-单机离线诊断，不依赖后端服务。
-用于低成本上架与合规路径。
+- **offline-version（早期单机版）**
+早期不依赖后端的交付分支。
 
 - **online-version（联网版）**
 保留 Android + 后端 API 的联网诊断架构，便于后续云端部署演进。
 
 - **main**
-默认展示分支（当前为最新稳定交付状态）。
+默认本地优先 v0.2 展示分支。主动探测在手机上运行，不需要 NetSage 后端。
+
+## Build and test
+
+```powershell
+cd android-app
+.\gradlew.bat testDebugUnitTest assembleDebug
+```

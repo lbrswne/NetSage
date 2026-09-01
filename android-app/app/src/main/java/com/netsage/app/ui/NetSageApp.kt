@@ -5,6 +5,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,6 +19,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.rememberCoroutineScope
+import com.netsage.app.diagnostic.probe.ProbeScheme
+import com.netsage.app.diagnostic.session.SessionExporter
 import com.netsage.app.model.CauseItem
 import com.netsage.app.model.DiagnoseHistoryRecord
 import com.netsage.app.model.FaultCategory
@@ -25,10 +31,14 @@ import com.netsage.app.repo.OfflineKnowledgeRepository
 import com.netsage.app.ui.screen.AppearanceSettingsScreen
 import com.netsage.app.ui.screen.ChecklistScreen
 import com.netsage.app.ui.screen.FeatureShowcaseScreen
+import com.netsage.app.ui.screen.DiagnosticHistoryScreen
+import com.netsage.app.ui.screen.DiagnosticResultScreen
 import com.netsage.app.ui.screen.HistoryScreen
 import com.netsage.app.ui.screen.HomeModule
 import com.netsage.app.ui.screen.HomeScreen
 import com.netsage.app.ui.screen.InputScreen
+import com.netsage.app.ui.screen.LocalCheckupMode
+import com.netsage.app.ui.screen.LocalCheckupScreen
 import com.netsage.app.ui.screen.OneTapCheckupScreen
 import com.netsage.app.ui.screen.PrivacyDocType
 import com.netsage.app.ui.screen.PrivacyOnboardingScreen
@@ -46,10 +56,15 @@ import com.netsage.app.util.AppearanceSettings
 import com.netsage.app.util.DiagnoseHistoryStore
 import com.netsage.app.model.SavedReportItem
 import com.netsage.app.util.PrivacyPrefs
+import com.netsage.app.util.LocalDocumentIo
 import com.netsage.app.util.SavedReportStore
 import com.netsage.app.util.buildReport
 import com.netsage.app.viewmodel.DiagnoseViewModel
+import com.netsage.app.viewmodel.DiagnosticFlowViewModel
 import com.netsage.app.viewmodel.ViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private fun inferCategory(cause: CauseItem): FaultCategory? {
     val text = buildString {
@@ -151,6 +166,8 @@ private fun recommendChecklists(causes: List<CauseItem>): List<TroubleshootingCh
 @Composable
 fun NetSageApp(
     appearanceSettings: AppearanceSettings,
+    sharedText: String? = null,
+    onSharedTextConsumed: () -> Unit = {},
     onUpdateAppearanceSettings: (AppearanceSettings) -> Unit,
 ) {
     val state = remember { AppState() }
@@ -158,12 +175,69 @@ fun NetSageApp(
     val activity = context as? Activity
     val vm: DiagnoseViewModel = viewModel(factory = ViewModelFactory())
     val ui by vm.uiState.collectAsState()
+    val diagnosticVm: DiagnosticFlowViewModel = viewModel()
+    val diagnosticUi by diagnosticVm.uiState.collectAsState()
+    val sessionExporter = remember { SessionExporter() }
     val privacyAccepted = PrivacyPrefs.hasAgreed(context)
     var hasAgreedPrivacy by remember(privacyAccepted) { mutableStateOf(privacyAccepted) }
     var currentDoc by remember { mutableStateOf<PrivacyDocType?>(null) }
     var history by remember { mutableStateOf(DiagnoseHistoryStore.load(context)) }
     var savedReports by remember { mutableStateOf(SavedReportStore.load(context)) }
     var nextSampleIndex by rememberSaveable { mutableIntStateOf(0) }
+    var pendingMarkdown by remember { mutableStateOf<String?>(null) }
+    var pendingJson by remember { mutableStateOf<String?>(null) }
+    val documentScope = rememberCoroutineScope()
+
+    BackHandler(enabled = state.page != AppPage.HOME) {
+        state.showHome()
+    }
+
+    val importLogLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            documentScope.launch {
+                val result = withContext(Dispatchers.IO) { LocalDocumentIo.readText(context, uri) }
+                result.onSuccess { imported ->
+                    state.showInput(imported.text)
+                    val message = if (imported.truncated) {
+                        "文件过大，仅导入前 500,000 个字符；请确认内容后再诊断"
+                    } else {
+                        "日志已从本机导入"
+                    }
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                }.onFailure { error ->
+                    Toast.makeText(context, error.message ?: "日志读取失败", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    val markdownExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/markdown")
+    ) { uri ->
+        val content = pendingMarkdown
+        pendingMarkdown = null
+        if (uri != null && content != null) {
+            documentScope.launch {
+                withContext(Dispatchers.IO) { LocalDocumentIo.writeText(context, uri, content) }
+                    .onSuccess { Toast.makeText(context, "Markdown 已保存", Toast.LENGTH_SHORT).show() }
+                    .onFailure { Toast.makeText(context, it.message ?: "导出失败", Toast.LENGTH_SHORT).show() }
+            }
+        }
+    }
+    val jsonExportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        val content = pendingJson
+        pendingJson = null
+        if (uri != null && content != null) {
+            documentScope.launch {
+                withContext(Dispatchers.IO) { LocalDocumentIo.writeText(context, uri, content) }
+                    .onSuccess { Toast.makeText(context, "JSON 已保存", Toast.LENGTH_SHORT).show() }
+                    .onFailure { Toast.makeText(context, it.message ?: "导出失败", Toast.LENGTH_SHORT).show() }
+            }
+        }
+    }
 
     val sampleLogs = OfflineKnowledgeRepository.sampleLogs
     fun takeNextSample(): String {
@@ -174,14 +248,15 @@ fun NetSageApp(
     }
 
     val modules = listOf(
-        HomeModule("快速诊断", "输入日志快速生成 Top3 根因与下一步行动") { state.showInput() },
-        HomeModule("一键体检", "勾选现象自动生成结构化输入并诊断") { state.page = AppPage.ONE_TAP_CHECKUP },
+        HomeModule("日志诊断", "粘贴、导入或分享日志，使用本地规则生成 Top3 假设") { state.showInput() },
+        HomeModule("快速体检", "在本机执行网络快照、DNS、TCP、TLS 与 HTTP 检测") { state.page = AppPage.LOCAL_CHECKUP },
+        HomeModule("组合诊断", "将日志证据与主动探测合并为同一诊断会话") { state.page = AppPage.COMBINED_CHECKUP },
         HomeModule("故障场景库", "离线按 DNS/连接/TLS/HTTP/丢包分类") { state.showScenarioLibrary() },
         HomeModule("样例中心", "一键使用内置样例日志进行诊断") { state.page = AppPage.SAMPLE_CENTER },
         HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.showChecklists() },
         HomeModule("错误码速查", "离线术语/错误码快速查询") { state.page = AppPage.QUICK_REFERENCE },
         HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
-        HomeModule("历史复盘", "回看历史记录并继续上次诊断") { state.page = AppPage.HISTORY },
+        HomeModule("诊断会话", "查看完整证据、导出报告并进行修复后复测") { state.page = AppPage.DIAGNOSTIC_HISTORY },
         HomeModule("现场工具箱", "内置常见排障命令模板，可一键复制") { state.page = AppPage.TOOLBOX },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
@@ -209,39 +284,59 @@ fun NetSageApp(
 
         state.page == AppPage.HOME -> HomeScreen(
             modules = modules,
-            latestRecordSummary = history.firstOrNull()?.let { "${it.inputSummary} → ${it.resultSummary}" },
+            latestRecordSummary = diagnosticUi.sessions.firstOrNull()?.let { session ->
+                "${session.title.ifBlank { "本地诊断" }} → ${session.hypotheses.firstOrNull()?.title ?: session.status.name}"
+            },
             savedReportCount = savedReports.size,
-            historyCount = history.size,
+            historyCount = diagnosticUi.sessions.size,
             onQuickOpenInput = { state.showInput() },
-            onQuickOpenHistory = { state.page = AppPage.HISTORY },
+            onQuickOpenHistory = { state.page = AppPage.DIAGNOSTIC_HISTORY },
             onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
             onQuickOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
             onQuickOpenScenarios = { state.showScenarioLibrary() },
             onReuseLatestRecord = {
-                history.firstOrNull()?.let { record ->
-                    state.showInput(record.inputText.ifBlank { record.inputSummary })
+                diagnosticUi.sessions.firstOrNull()?.let { session ->
+                    session.inputLog?.takeIf(String::isNotBlank)?.let(state::showInput)
+                        ?: run {
+                            diagnosticVm.selectSession(session.id)
+                            state.page = AppPage.DIAGNOSTIC_RESULT
+                        }
                 } ?: run {
                     state.showInput()
                 }
             },
-            onOpenHistory = { state.page = AppPage.HISTORY },
+            onOpenHistory = { state.page = AppPage.DIAGNOSTIC_HISTORY },
             onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
             onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
             onOpenAppearanceSettings = { state.page = AppPage.APPEARANCE_SETTINGS },
         )
 
+        state.page == AppPage.LOCAL_CHECKUP || state.page == AppPage.COMBINED_CHECKUP -> LocalCheckupScreen(
+            initialMode = if (state.page == AppPage.COMBINED_CHECKUP) LocalCheckupMode.COMBINED else LocalCheckupMode.QUICK,
+            isRunning = diagnosticUi.running,
+            progressMessage = diagnosticUi.progressMessage,
+            onBack = { state.showHome() },
+            onStart = { request ->
+                diagnosticVm.runCheckup(
+                    host = request.host,
+                    port = request.port,
+                    scheme = if (request.protocol == com.netsage.app.ui.screen.CheckProtocol.HTTP) ProbeScheme.HTTP else ProbeScheme.HTTPS,
+                    logText = request.logText,
+                    combined = request.mode == LocalCheckupMode.COMBINED,
+                )
+            },
+            onCancel = diagnosticVm::cancelRun,
+        )
+
         state.page == AppPage.ONE_TAP_CHECKUP -> OneTapCheckupScreen(
             onBack = { state.showHome() },
-            onRunCheckup = { payload ->
-                state.draftInput = payload
-                vm.diagnose(payload)
-            }
+            onRunCheckup = { payload -> state.showInput(payload) }
         )
 
         state.page == AppPage.INPUT -> InputScreen(
             onDiagnose = { text ->
                 state.draftInput = text
-                vm.diagnose(text)
+                diagnosticVm.runLogDiagnosis(text)
             },
             initialText = state.draftInput,
             isLoading = ui.loading,
@@ -250,6 +345,7 @@ fun NetSageApp(
                 state.draftInput = sample
                 sample
             },
+            onImportLog = { importLogLauncher.launch(arrayOf("text/*")) },
             onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
             onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
             onBackHome = { state.showHome() }
@@ -296,7 +392,7 @@ fun NetSageApp(
                 val brief = buildString {
                     appendLine("NetSage 故障事件简报")
                     appendLine("主判断：${top?.name ?: "暂无"}")
-                    appendLine("置信度：${top?.let { "${(it.confidence * 100).toInt()}%" } ?: "暂无"}")
+                    appendLine("规则证据强度：${top?.let { "${(it.confidence * 100).toInt()}/100" } ?: "暂无"}")
                     appendLine("影响范围：${top?.evidence?.firstOrNull() ?: "待补充"}")
                     appendLine("建议处置：${top?.fix ?: "待补充"}")
                     appendLine("时间：${System.currentTimeMillis()}")
@@ -323,6 +419,51 @@ fun NetSageApp(
                 cm.setPrimaryClip(ClipData.newPlainText("netsage-action-plan", actionPlan))
                 Toast.makeText(context, "行动单已复制", Toast.LENGTH_SHORT).show()
             }
+        )
+
+        state.page == AppPage.DIAGNOSTIC_RESULT -> {
+            val session = diagnosticUi.currentSession
+            if (session == null) {
+                LaunchedEffect(Unit) { state.page = AppPage.DIAGNOSTIC_HISTORY }
+            } else {
+                DiagnosticResultScreen(
+                    session = session.toResultUi(),
+                    isRetesting = diagnosticUi.running,
+                    retestProgress = diagnosticUi.progressMessage,
+                    onBack = { state.page = AppPage.DIAGNOSTIC_HISTORY },
+                    onRetest = { diagnosticVm.retest(session) },
+                    onExportMarkdown = {
+                        pendingMarkdown = sessionExporter.toMarkdown(session)
+                        markdownExportLauncher.launch("netsage-${session.id.take(8)}.md")
+                    },
+                    onExportJson = {
+                        pendingJson = sessionExporter.toJson(session)
+                        jsonExportLauncher.launch("netsage-${session.id.take(8)}.json")
+                    },
+                    onShare = {
+                        LocalDocumentIo.shareText(
+                            context,
+                            "NetSage 本地诊断报告",
+                            sessionExporter.toMarkdown(session),
+                        )
+                    },
+                    onDelete = {
+                        diagnosticVm.deleteSession(session.id)
+                        state.page = AppPage.DIAGNOSTIC_HISTORY
+                    },
+                )
+            }
+        }
+
+        state.page == AppPage.DIAGNOSTIC_HISTORY -> DiagnosticHistoryScreen(
+            items = diagnosticUi.sessions.map { it.toHistoryUi() },
+            onBack = { state.showHome() },
+            onOpen = { id ->
+                diagnosticVm.selectSession(id)
+                state.page = AppPage.DIAGNOSTIC_RESULT
+            },
+            onDelete = diagnosticVm::deleteSession,
+            onClear = diagnosticVm::clearSessions,
         )
 
         state.page == AppPage.SCENARIO_LIBRARY -> ScenarioLibraryScreen(
@@ -541,11 +682,30 @@ fun NetSageApp(
         )
     }
 
+    LaunchedEffect(sharedText) {
+        sharedText?.takeIf(String::isNotBlank)?.let { text ->
+            state.showInput(text)
+            onSharedTextConsumed()
+            Toast.makeText(context, "已接收分享的日志文本", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(diagnosticUi.currentSession?.id, diagnosticUi.running) {
+        if (!diagnosticUi.running && diagnosticUi.currentSession != null && state.page in setOf(
+                AppPage.INPUT,
+                AppPage.LOCAL_CHECKUP,
+                AppPage.COMBINED_CHECKUP,
+            )
+        ) {
+            state.page = AppPage.DIAGNOSTIC_RESULT
+        }
+    }
+
     LaunchedEffect(ui.causes) {
         if (ui.causes.isNotEmpty()) {
             state.showResult(ui.causes)
 
-            val resultSummary = ui.causes.joinToString(" | ") { "${it.name}(${(it.confidence * 100).toInt()}%)" }
+            val resultSummary = ui.causes.joinToString(" | ") { "${it.name}(证据强度 ${(it.confidence * 100).toInt()}/100)" }
             val record = DiagnoseHistoryRecord(
                 timestamp = System.currentTimeMillis(),
                 inputSummary = ui.inputSummary.ifBlank { "(空)" },
@@ -560,5 +720,10 @@ fun NetSageApp(
     ui.error?.let {
         Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         vm.clearError()
+    }
+
+    diagnosticUi.error?.let {
+        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        diagnosticVm.consumeError()
     }
 }
