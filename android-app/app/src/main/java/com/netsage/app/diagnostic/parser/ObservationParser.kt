@@ -76,6 +76,15 @@ class ObservationParser {
             if (CAPTIVE_PORTAL.containsMatchIn(line) && !CAPTIVE_PORTAL_NEGATED.containsMatchIn(line)) {
                 add(ObservationKind.CAPTIVE_PORTAL)
             }
+            if (DEFAULT_GATEWAY_MISSING.containsMatchIn(line)) {
+                add(ObservationKind.DEFAULT_GATEWAY_MISSING)
+            }
+            if (DNS_CONFIGURATION_MISSING.containsMatchIn(line)) {
+                add(ObservationKind.DNS_CONFIGURATION_MISSING)
+            }
+            if (INTERMITTENT_CONNECTIVITY.containsMatchIn(line)) {
+                add(ObservationKind.INTERMITTENT_CONNECTIVITY)
+            }
             if (IP_VERSION_MISMATCH.containsMatchIn(line)) {
                 add(ObservationKind.IP_VERSION_MISMATCH)
             }
@@ -172,6 +181,18 @@ class ObservationParser {
         )
         val CAPTIVE_PORTAL_NEGATED = Regex(
             pattern = """no captive portal|portal not detected|未检测到(?:强制)?门户|无需网页认证""",
+            option = RegexOption.IGNORE_CASE,
+        )
+        val DEFAULT_GATEWAY_MISSING = Regex(
+            pattern = """default gateway (?:is )?(?:missing|unavailable|not configured)|no default (?:gateway|route)|默认网关(?:缺失|不可用|未配置)|未找到默认(?:网关|路由)""",
+            option = RegexOption.IGNORE_CASE,
+        )
+        val DNS_CONFIGURATION_MISSING = Regex(
+            pattern = """DNS (?:configuration|server(?:s)?|resolver(?:s)?) (?:is )?(?:missing|empty|not configured)|no DNS (?:server|resolver)(?:s)? configured|DNS 配置(?:缺失|为空|未配置)|未配置 DNS(?: 服务器|解析器)?|未找到 DNS(?: 服务器|解析器)?""",
+            option = RegexOption.IGNORE_CASE,
+        )
+        val INTERMITTENT_CONNECTIVITY = Regex(
+            pattern = """\bintermittent(?:ly)?\b|\bsporadic(?:ally)?\b|\bflaky\b|时好时坏|间歇性(?:网络)?(?:故障|中断|超时|连接失败|不可用)?|偶发(?:断开|中断|掉线|连接失败|超时)?|偶尔(?:断开|中断|掉线|连接失败|超时)""",
             option = RegexOption.IGNORE_CASE,
         )
         val IP_VERSION_MISMATCH = Regex(

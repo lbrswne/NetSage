@@ -55,8 +55,9 @@ fun DiagnosticSession.toResultUi(): DiagnosticSessionUi = DiagnosticSessionUi(
             score = hypothesis.priority,
             matchedEvidence = hypothesis.matchedEvidence,
             conflictingEvidence = hypothesis.conflictingEvidence,
-            action = hypothesis.recommendedActions.firstOrNull()
-                ?: hypothesis.rationale.ifBlank { "补充证据后重新诊断" },
+            actions = hypothesis.recommendedActions.ifEmpty {
+                listOf(hypothesis.rationale.ifBlank { "补充证据后重新诊断" })
+            },
         )
     },
     comparisonLines = retestComparison?.let { comparison ->

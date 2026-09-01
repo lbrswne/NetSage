@@ -67,7 +67,7 @@ fun DiagnosticHistoryScreen(
             ) {
                 Text("NetSage · On-device", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelLarge)
                 Text("诊断会话", color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("完整保存输入、网络快照、探测证据、Top 3 假设和复测差异。最多保留 50 条。", color = Color.White.copy(alpha = 0.84f))
+                Text("本机保存诊断输入、网络快照、探测证据、Top 3 假设和复测差异。最多保留 20 条；每条原始日志最多 100,000 个字符。", color = Color.White.copy(alpha = 0.84f))
             }
         }
         Card(
@@ -95,7 +95,7 @@ fun DiagnosticHistoryScreen(
                     Text("${item.mode} · ${item.target}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(item.summary, style = MaterialTheme.typography.bodyMedium)
                     Text(item.probeSummary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Button(onClick = { onOpen(item.id) }, modifier = Modifier.fillMaxWidth()) { Text("查看完整会话") }
+                    Button(onClick = { onOpen(item.id) }, modifier = Modifier.fillMaxWidth()) { Text("查看会话详情") }
                     OutlinedButton(onClick = { onDelete(item.id) }, modifier = Modifier.fillMaxWidth()) { Text("删除") }
                 }
             }

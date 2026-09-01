@@ -201,7 +201,7 @@ fun NetSageApp(
                 result.onSuccess { imported ->
                     state.showInput(imported.text)
                     val message = if (imported.truncated) {
-                        "文件过大，仅导入前 500,000 个字符；请确认内容后再诊断"
+                        "文件超过 100,000 个字符，仅保留前 100,000 个字符；请确认后再诊断"
                     } else {
                         "日志已从本机导入"
                     }
@@ -256,7 +256,7 @@ fun NetSageApp(
         HomeModule("排障清单", "按步骤完成常见网络问题排查") { state.showChecklists() },
         HomeModule("错误码速查", "离线术语/错误码快速查询") { state.page = AppPage.QUICK_REFERENCE },
         HomeModule("收藏诊断", "查看已收藏的诊断结果") { state.showSavedReports() },
-        HomeModule("诊断会话", "查看完整证据、导出报告并进行修复后复测") { state.page = AppPage.DIAGNOSTIC_HISTORY },
+        HomeModule("诊断会话", "查看诊断证据、导出报告并进行修复后复测") { state.page = AppPage.DIAGNOSTIC_HISTORY },
         HomeModule("现场工具箱", "内置常见排障命令模板，可一键复制") { state.page = AppPage.TOOLBOX },
         HomeModule("显示与风格", "调整字体大小与整体配色") { state.page = AppPage.APPEARANCE_SETTINGS }
     )
@@ -335,6 +335,14 @@ fun NetSageApp(
 
         state.page == AppPage.INPUT -> InputScreen(
             onDiagnose = { text ->
+                if (text.length > LocalDocumentIo.MAX_LOG_CHARS) {
+                    Toast.makeText(
+                        context,
+                        "日志超过 100,000 个字符，未开始诊断；请删减后重试",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    return@InputScreen
+                }
                 state.draftInput = text
                 diagnosticVm.runLogDiagnosis(text)
             },
@@ -684,9 +692,15 @@ fun NetSageApp(
 
     LaunchedEffect(sharedText) {
         sharedText?.takeIf(String::isNotBlank)?.let { text ->
-            state.showInput(text)
+            val imported = LocalDocumentIo.limitLogText(text)
+            state.showInput(imported.text)
             onSharedTextConsumed()
-            Toast.makeText(context, "已接收分享的日志文本", Toast.LENGTH_SHORT).show()
+            val message = if (imported.truncated) {
+                "分享内容超过 100,000 个字符，仅保留前 100,000 个字符；请确认后再诊断"
+            } else {
+                "已接收分享的日志文本"
+            }
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
 

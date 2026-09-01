@@ -85,6 +85,33 @@
       "nextSteps": ["确认目标地址与端口", "对照测试同网段和其他网络", "检查路由及防火墙丢弃策略"]
     },
     {
+      "id": "network.default_gateway_missing",
+      "title": "已连接网络缺少默认网关",
+      "priority": "P1",
+      "order": 85,
+      "positiveKinds": ["DEFAULT_GATEWAY_MISSING"],
+      "explanation": "设备显示已连接，但当前网络快照未提供默认网关或默认路由，外部地址通常无法正常访问。",
+      "nextSteps": ["重新连接当前网络并获取新的 DHCP 配置", "检查路由器或 DHCP 是否下发默认网关", "对照测试其他网络或手动检查默认路由"]
+    },
+    {
+      "id": "network.dns_configuration_missing",
+      "title": "已连接网络缺少 DNS 配置",
+      "priority": "P1",
+      "order": 86,
+      "positiveKinds": ["DNS_CONFIGURATION_MISSING"],
+      "explanation": "设备显示已连接，但当前网络快照未提供 DNS 服务器；域名访问可能无法解析。",
+      "nextSteps": ["重新连接网络并刷新 DHCP 配置", "检查网络是否下发 DNS 服务器", "使用已知可用域名和 IP 地址分别对照测试"]
+    },
+    {
+      "id": "network.intermittent_connectivity",
+      "title": "网络连接存在间歇性异常",
+      "priority": "P2",
+      "order": 115,
+      "positiveKinds": ["INTERMITTENT_CONNECTIVITY"],
+      "explanation": "日志描述连接时好时坏或偶发断开，需要通过重复采样定位波动来源。",
+      "nextSteps": ["记录故障发生时间、网络类型和错误码", "在不同位置或网络下重复体检", "检查无线信号、漫游和上游链路波动"]
+    },
+    {
       "id": "network.ip_version_mismatch",
       "title": "IPv4/IPv6 路径或地址族不匹配",
       "priority": "P2",

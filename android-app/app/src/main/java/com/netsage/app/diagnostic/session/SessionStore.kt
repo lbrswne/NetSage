@@ -7,6 +7,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.netsage.app.util.LocalDocumentIo
 import java.util.UUID
 
 /**
@@ -92,7 +93,7 @@ class SessionStore(
             updatedAtEpochMillis = now,
             targetHost = session.targetHost.trim(),
             targetScheme = session.targetScheme.trim().lowercase(),
-            inputLog = session.inputLog?.take(MAX_STORED_LOG_CHARS),
+            inputLog = session.inputLog?.take(LocalDocumentIo.MAX_LOG_CHARS),
             observations = session.observations.sortedWith(
                 compareBy<ProbeObservation> { it.sequence }
                     .thenBy { it.startedAtEpochMillis }
@@ -286,8 +287,6 @@ class SessionStore(
 
     companion object {
         const val DEFAULT_MAX_SESSIONS = 20
-        private const val MAX_STORED_LOG_CHARS = 100_000
-
         private const val PREFERENCES_NAME = "netsage_diagnostic_sessions"
         private const val KEY_SESSIONS = "session_envelope"
         private const val KEY_ENVELOPE_SESSIONS = "sessions"

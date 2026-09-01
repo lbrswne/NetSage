@@ -46,7 +46,7 @@ data class HypothesisUi(
     val score: Int,
     val matchedEvidence: List<String>,
     val conflictingEvidence: List<String>,
-    val action: String,
+    val actions: List<String>,
 )
 
 data class DiagnosticSessionUi(
@@ -179,7 +179,14 @@ fun DiagnosticResultScreen(
                             Text("冲突或反向证据", style = MaterialTheme.typography.labelLarge, color = Color(0xFFB45309))
                             item.conflictingEvidence.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
                         }
-                        Text("下一步：${item.action}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                        Text("修复步骤", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                        item.actions.forEachIndexed { actionIndex, action ->
+                            Text(
+                                "${actionIndex + 1}. $action",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
                     }
                 }
             }

@@ -66,6 +66,22 @@ class ObservationParserTest {
     }
 
     @Test
+    fun `parses gateway DNS configuration and intermittent connectivity clues`() {
+        val observations = parser.parse(
+            """
+            default gateway missing on connected Wi-Fi
+            DNS 配置缺失，未找到 DNS 服务器
+            网络时好时坏，偶发断开
+            """.trimIndent(),
+        )
+
+        val kinds = observations.map { it.kind }.toSet()
+        assertTrue(ObservationKind.DEFAULT_GATEWAY_MISSING in kinds)
+        assertTrue(ObservationKind.DNS_CONFIGURATION_MISSING in kinds)
+        assertTrue(ObservationKind.INTERMITTENT_CONNECTIVITY in kinds)
+    }
+
+    @Test
     fun `does not turn successful or explicitly disabled features into failures`() {
         val observations = parser.parse(
             """

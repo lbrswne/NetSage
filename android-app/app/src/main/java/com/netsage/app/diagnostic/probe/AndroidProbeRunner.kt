@@ -15,8 +15,10 @@ import java.net.SocketTimeoutException
 import java.net.URI
 import java.net.URL
 import java.net.UnknownHostException
+import java.security.cert.CertificateException
 import java.security.cert.CertificateExpiredException
 import java.security.cert.CertificateNotYetValidException
+import java.security.cert.CertPathValidatorException
 import java.security.cert.X509Certificate
 import java.util.Date
 import javax.net.ssl.HttpsURLConnection
@@ -194,13 +196,15 @@ class AndroidProbeRunner(
                 target = target,
                 startedAtEpochMillis = startedAt,
                 durationMillis = elapsedSince(startedElapsed),
+                evidence = error.probeEvidence(),
                 error = mapped,
             )
         }
     }
 
     private suspend fun dnsPayload(host: String): StepPayload {
-        val addresses = resolve(host)
+        val resolution = resolve(host)
+        val addresses = resolution.addresses
             .mapNotNull(InetAddress::getHostAddress)
             .distinct()
         if (addresses.isEmpty()) throw UnknownHostException("No address returned for $host")
@@ -214,20 +218,36 @@ class AndroidProbeRunner(
                 "addressCount" to addresses.size.toString(),
                 "ipv4Count" to ipv4Count.toString(),
                 "ipv6Count" to ipv6Count.toString(),
+                "dnsRcodeAvailable" to resolution.rcodeAvailability.evidenceValue,
+                "resolver" to resolution.resolver,
             ),
             rawEvidence = addresses.joinToString(separator = "\n"),
         )
     }
 
-    private suspend fun resolve(host: String): List<InetAddress> {
+    private suspend fun resolve(host: String): DnsResolutionResult {
         if (isNumericAddress(host)) {
-            return runInterruptible(Dispatchers.IO) { listOf(InetAddress.getByName(host)) }
+            return DnsResolutionResult(
+                addresses = runInterruptible(Dispatchers.IO) { listOf(InetAddress.getByName(host)) },
+                rcodeAvailability = DnsRcodeAvailability.NOT_APPLICABLE,
+                resolver = "NumericAddress",
+            )
         }
         val asciiHost = IDN.toASCII(host)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             Api29DnsResolver.resolve(connectivityManager, asciiHost)
         } else {
-            runInterruptible(Dispatchers.IO) { InetAddress.getAllByName(asciiHost).toList() }
+            try {
+                DnsResolutionResult(
+                    addresses = runInterruptible(Dispatchers.IO) {
+                        InetAddress.getAllByName(asciiHost).toList()
+                    },
+                    rcodeAvailability = DnsRcodeAvailability.UNAVAILABLE,
+                    resolver = "InetAddressFallback",
+                )
+            } catch (error: UnknownHostException) {
+                throw inetAddressFallbackFailure(asciiHost, error)
+            }
         }
     }
 
@@ -499,27 +519,19 @@ class AndroidProbeRunner(
     )
 
     private fun Throwable.toProbeError(kind: ProbeKind): ProbeError {
-        val causes = generateSequence(this) { it.cause }.toList()
-        val code = when {
-            causes.any { it is CertificateExpiredException } -> "TLS_CERTIFICATE_EXPIRED"
-            causes.any { it is CertificateNotYetValidException } -> "TLS_CERTIFICATE_NOT_YET_VALID"
-            this is DnsResolutionException -> code
-            this is UnknownHostException -> "DNS_LOOKUP_FAILED"
-            this is SocketTimeoutException -> "SOCKET_TIMEOUT"
-            this is ConnectException -> "CONNECTION_REFUSED"
-            this is SSLPeerUnverifiedException -> "TLS_PEER_UNVERIFIED"
-            this is SSLHandshakeException -> "TLS_HANDSHAKE_FAILED"
-            this is SecurityException -> "PERMISSION_DENIED"
-            this is IllegalArgumentException -> "INVALID_TARGET"
-            this is IOException -> "IO_ERROR"
-            else -> "${kind.name}_FAILED"
-        }
         return ProbeError(
-            code = code,
+            code = probeErrorCode(kind),
             message = message?.takeIf { it.isNotBlank() } ?: "$kind failed",
             causeType = this::class.java.name,
         )
     }
+
+    private fun Throwable.probeEvidence(): Map<String, String> =
+        generateSequence(this) { it.cause }
+            .filterIsInstance<DnsResolutionException>()
+            .firstOrNull()
+            ?.evidence
+            .orEmpty()
 
     private fun X509Certificate.validityAt(now: Date): CertificateValidity = try {
         checkValidity(now)
@@ -586,6 +598,46 @@ internal fun httpResultStatus(statusCode: Int): String = when (statusCode) {
 /** Redirects are deliberately limited to the host the user entered. */
 internal fun isSameRedirectHost(requestedHost: String, redirectHost: String): Boolean =
     canonicalRedirectHost(requestedHost) == canonicalRedirectHost(redirectHost)
+
+internal fun Throwable.probeErrorCode(kind: ProbeKind): String {
+    val causes = generateSequence(this) { it.cause }.toList()
+    return when {
+        causes.any { it is CertificateExpiredException } -> "TLS_CERTIFICATE_EXPIRED"
+        causes.any { it is CertificateNotYetValidException } -> "TLS_CERTIFICATE_NOT_YET_VALID"
+        causes.any(::isTlsChainFailure) -> "TLS_CHAIN_ERROR"
+        causes.filterIsInstance<DnsResolutionException>().firstOrNull() != null ->
+            causes.filterIsInstance<DnsResolutionException>().first().code
+        this is UnknownHostException -> "DNS_LOOKUP_FAILED"
+        this is SocketTimeoutException -> "SOCKET_TIMEOUT"
+        this is ConnectException -> "CONNECTION_REFUSED"
+        this is SSLPeerUnverifiedException -> "TLS_PEER_UNVERIFIED"
+        this is SSLHandshakeException -> "TLS_HANDSHAKE_FAILED"
+        this is SecurityException -> "PERMISSION_DENIED"
+        this is IllegalArgumentException -> "INVALID_TARGET"
+        this is IOException -> "IO_ERROR"
+        else -> "${kind.name}_FAILED"
+    }
+}
+
+/** Detects certificate-path failures even when a TLS implementation wraps them in handshake errors. */
+internal fun isTlsChainFailure(error: Throwable): Boolean = when (error) {
+    is CertPathValidatorException,
+    is CertificateException -> true
+    else -> error.message
+        ?.lowercase()
+        ?.let { message -> TLS_CHAIN_ERROR_MARKERS.any(message::contains) }
+        ?: false
+}
+
+private val TLS_CHAIN_ERROR_MARKERS = listOf(
+    "trust anchor",
+    "unable to find valid certification path",
+    "certificate path",
+    "unable to get local issuer certificate",
+    "unknown ca",
+    "certificate chain",
+    "trust manager",
+)
 
 private fun canonicalRedirectHost(host: String): String = IDN.toASCII(host.trim().removeSuffix("."))
     .lowercase()

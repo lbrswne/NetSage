@@ -362,8 +362,7 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
     }
 
     private fun StringBuilder.appendSnapshotEvidence(snapshot: ProbeNetworkSnapshot) {
-        if (snapshot.captivePortal) appendLine("captive portal detected")
-        if (!snapshot.proxyHost.isNullOrBlank()) appendLine("proxy detected: ${snapshot.proxyHost}:${snapshot.proxyPort}")
+        snapshotEvidenceLines(snapshot).forEach(::appendLine)
         snapshot.ipAddresses.forEach { appendLine(it) }
     }
 
@@ -514,4 +513,13 @@ internal fun disconnectedNetworkHypothesis(
         ),
         ruleIds = listOf("network.device_offline"),
     )
+}
+
+internal fun snapshotEvidenceLines(snapshot: ProbeNetworkSnapshot): List<String> = buildList {
+    // A disconnected snapshot is handled before parsing. Do not turn absent routes or
+    // resolvers from an offline device into a separate configuration diagnosis.
+    if (snapshot.connected && snapshot.gateways.isEmpty()) add("default gateway missing")
+    if (snapshot.connected && snapshot.dnsServers.isEmpty()) add("DNS configuration missing")
+    if (snapshot.captivePortal) add("captive portal detected")
+    if (!snapshot.proxyHost.isNullOrBlank()) add("proxy detected: ${snapshot.proxyHost}:${snapshot.proxyPort}")
 }

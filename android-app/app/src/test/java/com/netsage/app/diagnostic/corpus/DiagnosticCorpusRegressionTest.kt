@@ -144,6 +144,13 @@ class DiagnosticCorpusRegressionTest(private val fixture: CorpusFixture) {
             case("portal-chinese-web", "当前网络需要网页登录", "network.captive_portal"),
             case("portal-chinese-redirect", "请求被重定向到登录页", "network.captive_portal"),
 
+            // Connected network configuration and intermittent failures (5)
+            case("gateway-missing", "default gateway missing on connected network", "network.default_gateway_missing"),
+            case("gateway-no-route", "no default route was configured by DHCP", "network.default_gateway_missing"),
+            case("dns-config-missing", "DNS configuration missing after Wi-Fi connected", "network.dns_configuration_missing"),
+            case("dns-config-chinese", "网络已连接，但 DNS 配置为空", "network.dns_configuration_missing"),
+            case("intermittent-chinese", "网络时好时坏，偶发断开", "network.intermittent_connectivity"),
+
             // IPv4/IPv6 mismatch (5)
             case("ip-family-unsupported", "socket error: address family not supported", "network.ip_version_mismatch"),
             case("ip-family-unavailable", "protocol family unavailable", "network.ip_version_mismatch"),

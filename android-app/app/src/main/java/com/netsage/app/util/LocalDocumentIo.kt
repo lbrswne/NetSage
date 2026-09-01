@@ -5,23 +5,29 @@ import android.content.Intent
 import android.net.Uri
 
 object LocalDocumentIo {
-    private const val MAX_IMPORT_CHARS = 500_000
+    /** Shared limit for imported, shared, manually entered, and persisted raw logs. */
+    const val MAX_LOG_CHARS = 100_000
 
     data class ImportedText(
         val text: String,
         val truncated: Boolean,
     )
 
+    fun limitLogText(text: String): ImportedText = ImportedText(
+        text = text.take(MAX_LOG_CHARS),
+        truncated = text.length > MAX_LOG_CHARS,
+    )
+
     fun readText(context: Context, uri: Uri): Result<ImportedText> = runCatching {
         context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { reader ->
             val buffer = CharArray(8_192)
             val result = StringBuilder()
-            while (result.length < MAX_IMPORT_CHARS) {
-                val read = reader.read(buffer, 0, minOf(buffer.size, MAX_IMPORT_CHARS - result.length))
+            while (result.length < MAX_LOG_CHARS) {
+                val read = reader.read(buffer, 0, minOf(buffer.size, MAX_LOG_CHARS - result.length))
                 if (read <= 0) break
                 result.append(buffer, 0, read)
             }
-            val truncated = result.length >= MAX_IMPORT_CHARS && reader.read() != -1
+            val truncated = result.length >= MAX_LOG_CHARS && reader.read() != -1
             ImportedText(result.toString(), truncated)
         } ?: error("无法读取所选文件")
     }

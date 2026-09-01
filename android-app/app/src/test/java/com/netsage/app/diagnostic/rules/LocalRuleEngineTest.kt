@@ -90,6 +90,26 @@ class LocalRuleEngineTest {
         assertTrue(assetEngine().evaluate(emptyList()).isEmpty())
     }
 
+    @Test
+    fun `maps new local network observations to explicit rules`() {
+        val hypotheses = assetEngine().evaluate(
+            listOf(
+                observation(ObservationKind.DEFAULT_GATEWAY_MISSING, 1, "default gateway missing"),
+                observation(ObservationKind.DNS_CONFIGURATION_MISSING, 2, "DNS configuration missing"),
+                observation(ObservationKind.INTERMITTENT_CONNECTIVITY, 3, "网络时好时坏"),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                "network.default_gateway_missing",
+                "network.dns_configuration_missing",
+                "network.intermittent_connectivity",
+            ),
+            hypotheses.map { it.ruleId },
+        )
+    }
+
     private fun assetEngine(): LocalRuleEngine {
         val asset = listOf(
             File("src/main/assets/${RuleDefinitionLoader.DEFAULT_ASSET_NAME}"),

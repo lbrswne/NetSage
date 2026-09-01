@@ -4,7 +4,9 @@ import com.netsage.app.diagnostic.probe.NetworkSnapshot
 import com.netsage.app.diagnostic.probe.NetworkTransport
 import com.netsage.app.diagnostic.session.EvidenceStrength
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DiagnosticFlowViewModelTest {
@@ -21,6 +23,22 @@ class DiagnosticFlowViewModelTest {
     @Test
     fun `connected snapshot does not produce offline hypothesis`() {
         assertNull(disconnectedNetworkHypothesis(snapshot(connected = true)))
+    }
+
+    @Test
+    fun `connected snapshot emits missing gateway and DNS evidence`() {
+        val evidence = snapshotEvidenceLines(snapshot(connected = true))
+
+        assertTrue("default gateway missing" in evidence)
+        assertTrue("DNS configuration missing" in evidence)
+    }
+
+    @Test
+    fun `disconnected snapshot does not emit configuration evidence`() {
+        val evidence = snapshotEvidenceLines(snapshot(connected = false))
+
+        assertFalse("default gateway missing" in evidence)
+        assertFalse("DNS configuration missing" in evidence)
     }
 
     private fun snapshot(connected: Boolean) = NetworkSnapshot(
