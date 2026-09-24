@@ -36,6 +36,9 @@ class AndroidProbeRunnerIntegrationTest {
 
             assertEquals(ProbeStatus.SUCCESS, result.observation(ProbeKind.DNS).status)
             assertEquals(ProbeStatus.SUCCESS, result.observation(ProbeKind.TCP).status)
+            assertEquals("127.0.0.1", result.observation(ProbeKind.TCP).evidence["ipv4Address"])
+            assertEquals("1/1", result.observation(ProbeKind.TCP).evidence["ipv4Connections"])
+            assertEquals("unavailable", result.observation(ProbeKind.TCP).evidence["ipv6Connections"])
             assertEquals(ProbeStatus.SKIPPED, result.observation(ProbeKind.TLS).status)
             assertEquals(ProbeStatus.SUCCESS, result.observation(ProbeKind.HTTP).status)
             assertEquals("200", result.observation(ProbeKind.HTTP).evidence["statusCode"])
@@ -69,6 +72,41 @@ class AndroidProbeRunnerIntegrationTest {
 
         assertEquals(ProbeStatus.FAILURE, tcp.status)
         assertEquals("CONNECTION_REFUSED", tcp.error?.code)
+        assertEquals("0/1", tcp.evidence["ipv4Connections"])
+    }
+
+    @Test
+    fun manualThreeAttemptCheckReportsConnectionCount() = runBlocking {
+        withServer {
+            enqueue(MockResponse().setResponseCode(200))
+
+            val result = runner().run(httpRequest(port = port).copy(tcpAttempts = 3))
+            val tcp = result.observation(ProbeKind.TCP)
+
+            assertEquals(ProbeStatus.SUCCESS, tcp.status)
+            assertEquals("3/3", tcp.evidence["ipv4Connections"])
+            assertEquals("3", tcp.evidence["tcpAttemptsPerAddress"])
+            assertEquals(ProbeStatus.SUCCESS, result.observation(ProbeKind.HTTP).status)
+        }
+    }
+
+    @Test
+    fun ipv6LoopbackIsReportedSeparately() = runBlocking {
+        val server = MockWebServer()
+        try {
+            server.enqueue(MockResponse().setResponseCode(200))
+            server.start(InetAddress.getByName("::1"), 0)
+            val result = runner().run(httpRequest(port = server.port).copy(
+                target = ProbeTarget(host = "::1", port = server.port, scheme = ProbeScheme.HTTP),
+            ))
+
+            val tcp = result.observation(ProbeKind.TCP)
+            assertEquals(ProbeStatus.SUCCESS, tcp.status)
+            assertEquals("1/1", tcp.evidence["ipv6Connections"])
+            assertEquals("unavailable", tcp.evidence["ipv4Connections"])
+        } finally {
+            server.shutdown()
+        }
     }
 
     @Test

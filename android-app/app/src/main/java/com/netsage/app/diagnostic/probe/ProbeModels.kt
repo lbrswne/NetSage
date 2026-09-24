@@ -85,6 +85,7 @@ data class ProbeTimeouts(
 data class ProbeRequest(
     val target: ProbeTarget,
     val timeouts: ProbeTimeouts = ProbeTimeouts(),
+    val tcpAttempts: Int = 1,
 )
 
 data class ProbeError(

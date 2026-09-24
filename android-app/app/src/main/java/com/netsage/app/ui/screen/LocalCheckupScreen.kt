@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,6 +56,8 @@ data class LocalCheckupRequest(
     val port: Int,
     val protocol: CheckProtocol,
     val logText: String,
+    val referenceHost: String = "",
+    val tcpAttempts: Int = 1,
 )
 
 private fun normalizeHostInput(raw: String): String {
@@ -75,6 +78,8 @@ fun LocalCheckupScreen(
     initialMode: LocalCheckupMode,
     isRunning: Boolean,
     progressMessage: String,
+    completedSteps: Int,
+    totalSteps: Int,
     onBack: () -> Unit,
     onStart: (LocalCheckupRequest) -> Unit,
     onCancel: () -> Unit,
@@ -84,10 +89,19 @@ fun LocalCheckupScreen(
     var protocol by remember { mutableStateOf(CheckProtocol.HTTPS) }
     var portText by remember { mutableStateOf(protocol.defaultPort.toString()) }
     var logText by remember { mutableStateOf("") }
+    var compareTarget by remember { mutableStateOf(false) }
+    var referenceHost by remember { mutableStateOf("") }
+    var repeatTcp by remember { mutableStateOf(false) }
     val normalizedHost = normalizeHostInput(host)
+    val normalizedReferenceHost = normalizeHostInput(referenceHost)
     val port = portText.toIntOrNull()
     val logLengthValid = logText.length <= LocalDocumentIo.MAX_LOG_CHARS
-    val inputValid = normalizedHost.isNotBlank() && port != null && port in 1..65535 && logLengthValid
+    val referenceValid = !compareTarget || (
+        normalizedReferenceHost.isNotBlank() &&
+            !normalizedReferenceHost.equals(normalizedHost, ignoreCase = true) &&
+            normalizedReferenceHost.none { it.isWhitespace() || it == '/' }
+        )
+    val inputValid = normalizedHost.isNotBlank() && port != null && port in 1..65535 && logLengthValid && referenceValid
 
     Column(
         modifier = Modifier
@@ -127,8 +141,8 @@ fun LocalCheckupScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("本地优先边界", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text("• 连接只发往下方由你确认的目标地址", style = MaterialTheme.typography.bodySmall)
-                Text("• 诊断会话默认仅保存在本机，关闭某项检测不会影响其他步骤", style = MaterialTheme.typography.bodySmall)
+                Text("• 连接只发往下方由你确认的主目标及可选对照目标", style = MaterialTheme.typography.bodySmall)
+                Text("• 会话仅保存在本机；取消检测时保留已完成步骤", style = MaterialTheme.typography.bodySmall)
                 Text("• 不使用账号、云数据库、遥测或广告 SDK", style = MaterialTheme.typography.bodySmall)
             }
         }
@@ -195,6 +209,37 @@ fun LocalCheckupScreen(
                     enabled = !isRunning
                 )
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("对照目标检测", style = MaterialTheme.typography.titleSmall)
+                        Text("使用相同协议和端口，再检测一个由你指定的地址。", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Switch(checked = compareTarget, onCheckedChange = { compareTarget = it }, enabled = !isRunning)
+                }
+                if (compareTarget) {
+                    OutlinedTextField(
+                        value = referenceHost,
+                        onValueChange = { referenceHost = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("对照域名或 IP") },
+                        supportingText = { Text("需与主目标不同；两次检测顺序执行，结论仅适用于本次采样。") },
+                        isError = referenceHost.isNotBlank() && !referenceValid,
+                        singleLine = true,
+                        enabled = !isRunning,
+                    )
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("连接稳定性检查", style = MaterialTheme.typography.titleSmall)
+                        Text("每个可用地址族执行 3 次 TCP 建连；结果是少量采样，不是丢包率。", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Switch(checked = repeatTcp, onCheckedChange = { repeatTcp = it }, enabled = !isRunning)
+                }
+
                 if (mode == LocalCheckupMode.COMBINED) {
                     OutlinedTextField(
                         value = logText,
@@ -222,6 +267,7 @@ fun LocalCheckupScreen(
                     CircularProgressIndicator(strokeWidth = 2.dp)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("正在执行本地检测", fontWeight = FontWeight.SemiBold)
+                        Text("已完成 $completedSteps / $totalSteps 步", style = MaterialTheme.typography.bodySmall)
                         Text(progressMessage.ifBlank { "正在准备网络快照…" }, style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -236,7 +282,9 @@ fun LocalCheckupScreen(
                             host = normalizedHost,
                             port = port ?: protocol.defaultPort,
                             protocol = protocol,
-                            logText = logText.trim()
+                            logText = logText.trim(),
+                            referenceHost = if (compareTarget) normalizedReferenceHost else "",
+                            tcpAttempts = if (repeatTcp) 3 else 1,
                         )
                     )
                 },

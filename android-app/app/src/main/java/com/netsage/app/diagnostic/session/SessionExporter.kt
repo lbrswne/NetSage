@@ -29,6 +29,13 @@ class SessionExporter(
         appendLine("- 更新时间：${formatTimestamp(session.updatedAtEpochMillis)}")
         if (session.title.isNotBlank()) appendLine("- 标题：${markdownText(session.title)}")
         appendTarget(session)
+        session.referenceComparisonSummary()?.let { summary ->
+            appendLine("- 对照目标：`${inlineCode(session.metadata[REFERENCE_HOST_KEY].orEmpty())}`")
+            appendLine("- 对照结论：${markdownText(summary)}")
+        }
+        if (session.observations.any { it.type == ProbeType.TCP && it.attributes.containsKey("tcpAttemptsPerAddress") }) {
+            appendLine("- TCP 建连计数：每个解析到的地址族选择一个地址进行少量采样；不是丢包率或持续可用性。")
+        }
 
         appendLine()
         appendLine("## 网络快照")
@@ -100,7 +107,8 @@ class SessionExporter(
             .sortedWith(compareBy<ProbeObservation> { it.sequence }.thenBy { it.startedAtEpochMillis }.thenBy { it.id })
             .forEachIndexed { index, observation ->
                 val target = observation.target.takeIf(String::isNotBlank)?.let { " · `${inlineCode(it)}`" }.orEmpty()
-                appendLine("### ${index + 1}. ${observation.type.name} · ${observation.status.name}$target")
+                val role = if (observation.attributes[TARGET_ROLE_KEY] == REFERENCE_ROLE) "对照目标" else "主目标"
+                appendLine("### ${index + 1}. $role · ${observation.type.name} · ${observation.status.name}$target")
                 if (observation.summary.isNotBlank()) appendLine(markdownText(observation.summary))
                 observation.durationMillis?.let { appendLine("- 耗时：`${it} ms`") }
                 observation.errorCode?.let { appendLine("- 错误代码：`${inlineCode(it)}`") }

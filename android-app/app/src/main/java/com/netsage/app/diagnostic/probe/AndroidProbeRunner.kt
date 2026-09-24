@@ -77,12 +77,13 @@ class AndroidProbeRunner(
         }
 
         var preferredAddress: String? = null
+        var resolvedAddresses = emptyList<String>()
         val steps = listOf(
             ProbeStep(ProbeKind.DNS, request.timeouts.dnsMillis) {
                 dnsPayload(request.target.normalizedHost())
             },
-            ProbeStep(ProbeKind.TCP, request.timeouts.tcpMillis) {
-                tcpPayload(request.target, preferredAddress, request.timeouts.tcpMillis)
+            ProbeStep(ProbeKind.TCP, request.timeouts.tcpMillis.coerceAtMost(60_000) * request.tcpAttempts * 2 + 250) {
+                tcpPayload(request.target, resolvedAddresses, request.timeouts.tcpMillis, request.tcpAttempts)
             },
             ProbeStep(ProbeKind.TLS, request.timeouts.tlsMillis) {
                 if (request.target.scheme == ProbeScheme.HTTP) {
@@ -121,10 +122,14 @@ class AndroidProbeRunner(
 
             observations += observation
             if (step.kind == ProbeKind.DNS && observation.status == ProbeStatus.SUCCESS) {
-                preferredAddress = observation.evidence["addresses"]
+                resolvedAddresses = observation.evidence["addresses"]
                     ?.split(',')
-                    ?.firstOrNull()
-                    ?.trim()
+                    ?.map(String::trim)
+                    .orEmpty()
+                preferredAddress = resolvedAddresses.firstOrNull()
+            }
+            if (step.kind == ProbeKind.TCP) {
+                preferredAddress = observation.evidence["firstSuccessfulAddress"] ?: preferredAddress
             }
             onObservation(observation)
         }
@@ -255,27 +260,58 @@ class AndroidProbeRunner(
 
     private suspend fun tcpPayload(
         target: ProbeTarget,
-        preferredAddress: String?,
+        resolvedAddresses: List<String>,
         timeoutMillis: Long,
+        attempts: Int,
     ): StepPayload = runInterruptible(Dispatchers.IO) {
-        val connectHost = preferredAddress ?: target.normalizedHost()
-        Socket().use { socket ->
-            socket.connect(
-                InetSocketAddress(connectHost, target.effectivePort),
-                timeoutMillis.toIntTimeout(),
-            )
-            StepPayload(
-                status = ProbeStatus.SUCCESS,
-                evidence = linkedMapOf(
-                    "remoteAddress" to socket.inetAddress.hostAddress.orEmpty(),
-                    "remotePort" to socket.port.toString(),
-                    "localAddress" to socket.localAddress.hostAddress.orEmpty(),
-                    "localPort" to socket.localPort.toString(),
-                ),
-                rawEvidence = "Connected ${socket.localAddress.hostAddress}:${socket.localPort} -> " +
-                    "${socket.inetAddress.hostAddress}:${socket.port}",
-            )
+        val host = target.normalizedHost()
+        val addresses = resolvedAddresses.ifEmpty { if (isNumericAddress(host)) listOf(host) else emptyList() }
+        val ipv4 = addresses.firstOrNull { !it.contains(':') }
+        val ipv6 = addresses.firstOrNull { it.contains(':') }
+        val evidence = linkedMapOf(
+            "ipv4Connections" to "unavailable",
+            "ipv6Connections" to "unavailable",
+            "tcpAttemptsPerAddress" to attempts.toString(),
+        )
+        var firstError: IOException? = null
+        var firstSuccessfulAddress: String? = null
+        var failed = false
+        for ((family, address) in listOf("ipv4" to ipv4, "ipv6" to ipv6, "unresolved" to host.takeIf { addresses.isEmpty() })) {
+            if (address == null) continue
+            evidence["${family}Address"] = address
+            var successes = 0
+            repeat(attempts) {
+                try {
+                    Socket().use { socket ->
+                        socket.connect(InetSocketAddress(address, target.effectivePort), timeoutMillis.toIntTimeout())
+                        successes++
+                        if (firstSuccessfulAddress == null) {
+                            firstSuccessfulAddress = socket.inetAddress.hostAddress
+                            evidence["remoteAddress"] = socket.inetAddress.hostAddress.orEmpty()
+                            evidence["remotePort"] = socket.port.toString()
+                            evidence["localAddress"] = socket.localAddress.hostAddress.orEmpty()
+                            evidence["localPort"] = socket.localPort.toString()
+                        }
+                    }
+                } catch (error: IOException) {
+                    failed = true
+                    if (firstError == null) firstError = error
+                    evidence["${family}LastError"] = error.probeErrorCode(ProbeKind.TCP)
+                }
+            }
+            evidence["${family}Connections"] = "$successes/$attempts"
         }
+        firstSuccessfulAddress?.let { evidence["firstSuccessfulAddress"] = it }
+        StepPayload(
+            status = when {
+                !failed -> ProbeStatus.SUCCESS
+                firstError is SocketTimeoutException -> ProbeStatus.TIMEOUT
+                else -> ProbeStatus.FAILURE
+            },
+            evidence = evidence,
+            rawEvidence = evidence.entries.joinToString("\n") { "${it.key}=${it.value}" },
+            error = firstError?.toProbeError(ProbeKind.TCP),
+        )
     }
 
     private suspend fun tlsPayload(
@@ -311,6 +347,8 @@ class AndroidProbeRunner(
                 val validity = certificate.validityAt(Date())
                 val success = hostnameVerified && validity == CertificateValidity.VALID
                 val evidence = linkedMapOf(
+                    "remoteAddress" to sslSocket.inetAddress.hostAddress.orEmpty(),
+                    "remotePort" to sslSocket.port.toString(),
                     "protocol" to session.protocol.orEmpty(),
                     "cipherSuite" to session.cipherSuite.orEmpty(),
                     "hostnameVerified" to hostnameVerified.toString(),
@@ -493,6 +531,7 @@ class AndroidProbeRunner(
                 "Host must not include a scheme, path, or whitespace"
             request.target.effectivePort !in 1..65_535 -> "Port must be between 1 and 65535"
             request.target.maxRedirects !in 0..10 -> "maxRedirects must be between 0 and 10"
+            request.tcpAttempts !in 1..3 -> "TCP attempts must be between 1 and 3"
             request.target.path.contains('#') -> "HTTP path must not contain a URL fragment"
             listOf(
                 request.timeouts.dnsMillis,

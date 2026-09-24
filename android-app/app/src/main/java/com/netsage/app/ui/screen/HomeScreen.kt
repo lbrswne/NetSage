@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -115,17 +114,14 @@ fun HomeScreen(
     savedReportCount: Int,
     historyCount: Int,
     onQuickOpenInput: () -> Unit,
+    onQuickOpenCheckup: () -> Unit,
     onQuickOpenHistory: () -> Unit,
-    onQuickOpenReference: () -> Unit,
-    onQuickOpenSamples: () -> Unit,
-    onQuickOpenScenarios: () -> Unit,
     onReuseLatestRecord: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenUserAgreement: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
-    onOpenAppearanceSettings: () -> Unit,
 ) {
-    val allModules = modules
+    val allModules = modules.filterNot { it.title in setOf("日志诊断", "快速体检", "诊断会话") }
     val overviewStats = listOf(
         OverviewStat("收藏诊断", savedReportCount.toString(), if (savedReportCount > 0) "可回看重点结果" else "尚未收藏结果"),
         OverviewStat("诊断会话", historyCount.toString(), if (historyCount > 0) "可查看证据与复测" else "等待首次诊断沉淀"),
@@ -174,15 +170,15 @@ fun HomeScreen(
                         HomeBadge("无遥测")
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                        Button(onClick = onQuickOpenInput, modifier = Modifier.weight(1f)) {
-                            Text("日志诊断")
+                        Button(onClick = onQuickOpenCheckup, modifier = Modifier.weight(1f)) {
+                            Text("开始体检")
                         }
                         OutlinedButton(
-                            onClick = onQuickOpenHistory,
+                            onClick = onQuickOpenInput,
                             modifier = Modifier.weight(1f),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.38f))
                         ) {
-                            Text("诊断会话", color = Color.White)
+                            Text("分析日志", color = Color.White)
                         }
                     }
                 }
@@ -201,63 +197,8 @@ fun HomeScreen(
 
 
         item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text("常用操作", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        AssistChip(onClick = onQuickOpenInput, label = { Text("去诊断") })
-                        AssistChip(onClick = onQuickOpenHistory, label = { Text("看历史") })
-                        AssistChip(onClick = onQuickOpenReference, label = { Text("查术语") })
-                        AssistChip(onClick = onQuickOpenSamples, label = { Text("跑样例") })
-                        AssistChip(onClick = onQuickOpenScenarios, label = { Text("场景库") })
-                        AssistChip(onClick = onOpenAppearanceSettings, label = { Text("显示与风格") })
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(onClick = onOpenUserAgreement, modifier = Modifier.weight(1f)) {
-                            Text("用户协议")
-                        }
-                        OutlinedButton(onClick = onOpenPrivacyPolicy, modifier = Modifier.weight(1f)) {
-                            Text("隐私政策")
-                        }
-                    }
-
-                }
-            }
-        }
-
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("新手引导", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("推荐路径：先用样例体验日志诊断 → 再运行快速体检 → 修复后使用复测对比结果。", style = MaterialTheme.typography.bodySmall)
-FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(onClick = onQuickOpenSamples) { Text("先看样例") }
-                        OutlinedButton(onClick = onQuickOpenScenarios) { Text("看场景库") }
-                        OutlinedButton(onClick = onQuickOpenInput) { Text("直接诊断") }
-                    }
-                }
+            OutlinedButton(onClick = onQuickOpenHistory, modifier = Modifier.fillMaxWidth()) {
+                Text("查看诊断会话与复测记录")
             }
         }
 
@@ -287,7 +228,7 @@ FlowRow(
         }
 
         item {
-            Text("功能入口", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("更多工具", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         }
 
         items(allModules.chunked(2).size) { index ->
@@ -304,6 +245,12 @@ FlowRow(
                 if (rowModules.size == 1) {
                     Box(modifier = Modifier.weight(1f))
                 }
+            }
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onOpenUserAgreement, modifier = Modifier.weight(1f)) { Text("用户协议") }
+                OutlinedButton(onClick = onOpenPrivacyPolicy, modifier = Modifier.weight(1f)) { Text("隐私政策") }
             }
         }
     }

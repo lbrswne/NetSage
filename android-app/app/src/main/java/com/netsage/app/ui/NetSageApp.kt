@@ -290,10 +290,8 @@ fun NetSageApp(
             savedReportCount = savedReports.size,
             historyCount = diagnosticUi.sessions.size,
             onQuickOpenInput = { state.showInput() },
+            onQuickOpenCheckup = { state.page = AppPage.LOCAL_CHECKUP },
             onQuickOpenHistory = { state.page = AppPage.DIAGNOSTIC_HISTORY },
-            onQuickOpenReference = { state.page = AppPage.QUICK_REFERENCE },
-            onQuickOpenSamples = { state.page = AppPage.SAMPLE_CENTER },
-            onQuickOpenScenarios = { state.showScenarioLibrary() },
             onReuseLatestRecord = {
                 diagnosticUi.sessions.firstOrNull()?.let { session ->
                     session.inputLog?.takeIf(String::isNotBlank)?.let(state::showInput)
@@ -308,13 +306,14 @@ fun NetSageApp(
             onOpenHistory = { state.page = AppPage.DIAGNOSTIC_HISTORY },
             onOpenUserAgreement = { currentDoc = PrivacyDocType.USER_AGREEMENT },
             onOpenPrivacyPolicy = { currentDoc = PrivacyDocType.PRIVACY_POLICY },
-            onOpenAppearanceSettings = { state.page = AppPage.APPEARANCE_SETTINGS },
         )
 
         state.page == AppPage.LOCAL_CHECKUP || state.page == AppPage.COMBINED_CHECKUP -> LocalCheckupScreen(
             initialMode = if (state.page == AppPage.COMBINED_CHECKUP) LocalCheckupMode.COMBINED else LocalCheckupMode.QUICK,
             isRunning = diagnosticUi.running,
             progressMessage = diagnosticUi.progressMessage,
+            completedSteps = diagnosticUi.completedSteps,
+            totalSteps = diagnosticUi.totalSteps,
             onBack = { state.showHome() },
             onStart = { request ->
                 diagnosticVm.runCheckup(
@@ -323,6 +322,8 @@ fun NetSageApp(
                     scheme = if (request.protocol == com.netsage.app.ui.screen.CheckProtocol.HTTP) ProbeScheme.HTTP else ProbeScheme.HTTPS,
                     logText = request.logText,
                     combined = request.mode == LocalCheckupMode.COMBINED,
+                    referenceHost = request.referenceHost,
+                    tcpAttempts = request.tcpAttempts,
                 )
             },
             onCancel = diagnosticVm::cancelRun,

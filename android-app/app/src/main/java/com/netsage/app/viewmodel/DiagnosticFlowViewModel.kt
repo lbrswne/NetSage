@@ -27,8 +27,12 @@ import com.netsage.app.diagnostic.session.NetworkTransport
 import com.netsage.app.diagnostic.session.ProbeObservation
 import com.netsage.app.diagnostic.session.ProbeStatus
 import com.netsage.app.diagnostic.session.ProbeType
+import com.netsage.app.diagnostic.session.REFERENCE_HOST_KEY
+import com.netsage.app.diagnostic.session.REFERENCE_NETWORK_CHANGED_KEY
+import com.netsage.app.diagnostic.session.REFERENCE_ROLE
 import com.netsage.app.diagnostic.session.RetestComparator
 import com.netsage.app.diagnostic.session.SessionStore
+import com.netsage.app.diagnostic.session.TARGET_ROLE_KEY
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +44,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val TCP_ATTEMPTS_KEY = "tcpAttemptsPerAddress"
+
 data class DiagnosticFlowUiState(
     val running: Boolean = false,
     val progressMessage: String = "",
+    val completedSteps: Int = 0,
+    val totalSteps: Int = 4,
     val sessions: List<DiagnosticSession> = emptyList(),
     val currentSession: DiagnosticSession? = null,
     val error: String? = null,
@@ -105,6 +113,8 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
         scheme: ProbeScheme,
         logText: String = "",
         combined: Boolean = false,
+        referenceHost: String = "",
+        tcpAttempts: Int = 1,
     ) {
         runProbeDiagnostic(
             host = host,
@@ -113,6 +123,8 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
             inputLog = logText,
             mode = if (combined) DiagnosticSessionMode.COMBINED else DiagnosticSessionMode.QUICK_CHECKUP,
             baseline = null,
+            referenceHost = referenceHost,
+            tcpAttempts = tcpAttempts,
         )
     }
 
@@ -130,6 +142,8 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
             inputLog = session.inputLog.orEmpty(),
             mode = DiagnosticSessionMode.RETEST,
             baseline = session,
+            referenceHost = session.metadata[REFERENCE_HOST_KEY].orEmpty(),
+            tcpAttempts = session.metadata[TCP_ATTEMPTS_KEY]?.toIntOrNull()?.takeIf { it in 1..3 } ?: 1,
         )
     }
 
@@ -179,17 +193,24 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
         inputLog: String,
         mode: DiagnosticSessionMode,
         baseline: DiagnosticSession?,
+        referenceHost: String,
+        tcpAttempts: Int,
     ) {
         val sessionId = UUID.randomUUID().toString()
         beginRun(sessionId)
         val startedAt = System.currentTimeMillis()
         val collected = mutableListOf<RuntimeProbeObservation>()
+        val referenceCollected = mutableListOf<RuntimeProbeObservation>()
+        val checkedReferenceHost = referenceHost.trim()
+        val totalSteps = if (checkedReferenceHost.isBlank()) 4 else 8
 
         runningJob = viewModelScope.launch {
             publishIfActive(sessionId) {
                 it.copy(
                     running = true,
                     progressMessage = "正在读取当前网络状态…",
+                    completedSteps = 0,
+                    totalSteps = totalSteps,
                     error = null,
                 )
             }
@@ -206,18 +227,38 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
                     targetPort = port,
                     targetScheme = scheme.value,
                     inputLog = inputLog.ifBlank { null },
+                    metadata = buildMap {
+                        put(TCP_ATTEMPTS_KEY, tcpAttempts.toString())
+                        if (checkedReferenceHost.isNotBlank()) put(REFERENCE_HOST_KEY, checkedReferenceHost)
+                    },
                 )
                 withContext(Dispatchers.IO) { sessionStore.save(draft) }
 
                 preflightSnapshot = probeRunner.captureNetworkSnapshot()
                 val result = probeRunner.run(
-                    ProbeRequest(ProbeTarget(host = host, port = port, scheme = scheme))
+                    ProbeRequest(ProbeTarget(host = host, port = port, scheme = scheme), tcpAttempts = tcpAttempts)
                 ) { observation ->
                     collected += observation
-                    publishIfActive(sessionId) { it.copy(progressMessage = progressText(observation)) }
+                    publishIfActive(sessionId) { it.copy(
+                        completedSteps = collected.size,
+                        progressMessage = "主目标 ${collected.size}/4：${observation.kind.name} 已完成",
+                    ) }
                 }
 
-                val storedObservations = result.observations.mapIndexed(::mapObservation)
+                val referenceResult = if (checkedReferenceHost.isNotBlank()) {
+                    publishIfActive(sessionId) { it.copy(progressMessage = "正在检测对照目标…") }
+                    probeRunner.run(
+                        ProbeRequest(ProbeTarget(host = checkedReferenceHost, port = port, scheme = scheme), tcpAttempts = tcpAttempts)
+                    ) { observation ->
+                        referenceCollected += observation
+                        publishIfActive(sessionId) { it.copy(
+                            completedSteps = 4 + referenceCollected.size,
+                            progressMessage = "对照目标 ${referenceCollected.size}/4：${observation.kind.name} 已完成",
+                        ) }
+                    }
+                } else null
+
+                val storedObservations = mapRunObservations(result.observations, referenceResult?.observations.orEmpty())
                 val hypotheses = buildHypotheses(inputLog, result.observations, result.snapshot)
                 val partial = storedObservations.any {
                     it.status == ProbeStatus.WARNING ||
@@ -231,7 +272,14 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
                     observations = storedObservations,
                     hypotheses = hypotheses,
                     tags = hypotheses.map { it.category }.filter(String::isNotBlank).distinct(),
-                    metadata = mapOf("probeDurationMillis" to result.durationMillis.toString()),
+                    metadata = buildMap {
+                        put("probeDurationMillis", (result.durationMillis + (referenceResult?.durationMillis ?: 0)).toString())
+                        put(TCP_ATTEMPTS_KEY, tcpAttempts.toString())
+                        if (referenceResult != null) {
+                            put(REFERENCE_HOST_KEY, checkedReferenceHost)
+                            put(REFERENCE_NETWORK_CHANGED_KEY, networkChanged(result.snapshot, referenceResult.snapshot).toString())
+                        }
+                    },
                 )
                 if (baseline != null) {
                     completed = completed.copy(
@@ -254,7 +302,11 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
                         targetScheme = scheme.value,
                         inputLog = inputLog.ifBlank { null },
                         networkSnapshot = preflightSnapshot?.let(::mapSnapshot),
-                        observations = collected.mapIndexed(::mapObservation),
+                        observations = mapRunObservations(collected, referenceCollected),
+                        metadata = buildMap {
+                            put(TCP_ATTEMPTS_KEY, tcpAttempts.toString())
+                            if (checkedReferenceHost.isNotBlank()) put(REFERENCE_HOST_KEY, checkedReferenceHost)
+                        },
                     )
                     val saved = sessionStore.save(cancelledSession)
                     publishIfActive(sessionId) {
@@ -281,8 +333,12 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
                         targetScheme = scheme.value,
                         inputLog = inputLog.ifBlank { null },
                         networkSnapshot = preflightSnapshot?.let(::mapSnapshot),
-                        observations = collected.mapIndexed(::mapObservation),
-                        metadata = mapOf("failure" to (error.message ?: error::class.java.simpleName)),
+                        observations = mapRunObservations(collected, referenceCollected),
+                        metadata = buildMap {
+                            put("failure", error.message ?: error::class.java.simpleName)
+                            put(TCP_ATTEMPTS_KEY, tcpAttempts.toString())
+                            if (checkedReferenceHost.isNotBlank()) put(REFERENCE_HOST_KEY, checkedReferenceHost)
+                        },
                     )
                     val saved = sessionStore.save(failed)
                     publishIfActive(sessionId) {
@@ -478,18 +534,35 @@ class DiagnosticFlowViewModel(application: Application) : AndroidViewModel(appli
         errorMessage = source.error?.message,
     )
 
-    private fun progressText(observation: RuntimeProbeObservation): String = when (observation.kind) {
-        ProbeKind.DNS -> "DNS 已完成，正在检查 TCP 端口…"
-        ProbeKind.TCP -> "TCP 已完成，正在检查 TLS…"
-        ProbeKind.TLS -> "TLS 已完成，正在检查 HTTP…"
-        ProbeKind.HTTP -> "HTTP 已完成，正在生成本地诊断结果…"
-    }
+    private fun mapRunObservations(
+        primary: List<RuntimeProbeObservation>,
+        reference: List<RuntimeProbeObservation>,
+    ): List<ProbeObservation> = primary.mapIndexed(::mapObservation) +
+        reference.mapIndexed { index, observation ->
+            mapObservation(primary.size + index, observation).copy(
+                attributes = observation.evidence + (TARGET_ROLE_KEY to REFERENCE_ROLE),
+            )
+        }
 
     private fun isHealthyProbe(observation: RuntimeProbeObservation): Boolean =
         observation.status == RuntimeProbeStatus.SUCCESS &&
             !(observation.kind == ProbeKind.HTTP &&
                 observation.evidence["statusCode"]?.toIntOrNull() in 400..599)
 }
+
+internal fun networkChanged(before: ProbeNetworkSnapshot, after: ProbeNetworkSnapshot): Boolean =
+    before.connected != after.connected ||
+        before.interfaceName != after.interfaceName ||
+        before.transports != after.transports ||
+        before.ipAddresses != after.ipAddresses ||
+        before.gateways != after.gateways ||
+        before.dnsServers != after.dnsServers ||
+        before.validated != after.validated ||
+        before.captivePortal != after.captivePortal ||
+        before.privateDnsActive != after.privateDnsActive ||
+        before.privateDnsServerName != after.privateDnsServerName ||
+        before.proxyHost != after.proxyHost ||
+        before.proxyPort != after.proxyPort
 
 internal fun disconnectedNetworkHypothesis(
     snapshot: ProbeNetworkSnapshot?,

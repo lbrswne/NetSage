@@ -3,6 +3,11 @@ package com.netsage.app.ui
 import com.netsage.app.diagnostic.session.DiagnosticSession
 import com.netsage.app.diagnostic.session.DiagnosticSessionMode
 import com.netsage.app.diagnostic.session.EvidenceStrength
+import com.netsage.app.diagnostic.session.REFERENCE_HOST_KEY
+import com.netsage.app.diagnostic.session.REFERENCE_ROLE
+import com.netsage.app.diagnostic.session.ProbeType
+import com.netsage.app.diagnostic.session.TARGET_ROLE_KEY
+import com.netsage.app.diagnostic.session.referenceComparisonSummary
 import com.netsage.app.ui.screen.DiagnosticHistoryItemUi
 import com.netsage.app.ui.screen.DiagnosticSessionUi
 import com.netsage.app.ui.screen.HypothesisUi
@@ -32,6 +37,7 @@ fun DiagnosticSession.toResultUi(): DiagnosticSessionUi = DiagnosticSessionUi(
     probes = observations.map { observation ->
         ProbeResultUi(
             title = observation.type.name,
+            role = if (observation.attributes[TARGET_ROLE_KEY] == REFERENCE_ROLE) "对照目标" else "主目标",
             target = observation.target,
             status = observation.status.name,
             durationMs = observation.durationMillis ?: 0,
@@ -63,7 +69,9 @@ fun DiagnosticSession.toResultUi(): DiagnosticSessionUi = DiagnosticSessionUi(
     comparisonLines = retestComparison?.let { comparison ->
         buildList {
             add("总体：${comparison.outcome.name} · ${comparison.summary}")
-            comparison.networkChanged?.let { add("网络环境变化：${if (it) "是" else "否"}") }
+            comparison.networkChanged?.let {
+                add(if (it) "网络环境已变化，前后结果不能直接归因于修复操作。" else "网络快照未发现明显变化；仍需结合重复采样判断。")
+            }
             comparison.probeComparisons.forEach { probe ->
                 add("${probe.probeType.name} ${probe.target}：${probe.change.name}，${probe.beforeStatus ?: "无"} → ${probe.afterStatus ?: "无"}")
             }
@@ -72,6 +80,22 @@ fun DiagnosticSession.toResultUi(): DiagnosticSessionUi = DiagnosticSessionUi(
             if (comparison.newHypothesisCodes.isNotEmpty()) add("新增：${comparison.newHypothesisCodes.joinToString()}")
         }
     }.orEmpty(),
+    referenceTarget = metadata[REFERENCE_HOST_KEY],
+    referenceSummary = referenceComparisonSummary(),
+    tcpLines = observations.filter { it.type == ProbeType.TCP &&
+        (it.attributes.containsKey("ipv4Connections") || it.attributes.containsKey("ipv6Connections"))
+    }.map { observation ->
+        val role = if (observation.attributes[TARGET_ROLE_KEY] == REFERENCE_ROLE) "对照目标" else "主目标"
+        val attributes = observation.attributes
+        val families = listOf("ipv4" to "IPv4", "ipv6" to "IPv6").map { (key, label) ->
+            val count = attributes["${key}Connections"]
+            val address = attributes["${key}Address"]
+            if (count == null || count == "unavailable") "$label：未解析到地址"
+            else "$label ${address.orEmpty()}：$count 次 TCP 建连成功"
+        }
+        val fallback = attributes["unresolvedConnections"]?.let { "；未解析地址回退：$it 次 TCP 建连成功" }.orEmpty()
+        "$role · ${families.joinToString("；")}$fallback"
+    },
 )
 
 fun DiagnosticSession.toHistoryUi(): DiagnosticHistoryItemUi {

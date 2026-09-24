@@ -41,6 +41,13 @@ class DiagnosticFlowViewModelTest {
         assertFalse("DNS configuration missing" in evidence)
     }
 
+    @Test
+    fun `reference comparison detects network address change`() {
+        val before = snapshot(connected = true)
+        assertFalse(networkChanged(before, before.copy(capturedAtEpochMillis = 2L)))
+        assertTrue(networkChanged(before, before.copy(ipAddresses = listOf("192.0.2.10/24"))))
+    }
+
     private fun snapshot(connected: Boolean) = NetworkSnapshot(
         capturedAtEpochMillis = 1L,
         connected = connected,
