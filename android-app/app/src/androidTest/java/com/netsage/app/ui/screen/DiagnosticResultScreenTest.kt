@@ -47,4 +47,37 @@ class DiagnosticResultScreenTest {
         composeRule.onNodeWithText("确认删除").performClick()
         composeRule.runOnIdle { assertEquals(1, deleteCalls) }
     }
+
+    @Test
+    fun resultSharingRequiresPrivacyConfirmation() {
+        var shareCalls = 0
+        composeRule.setContent {
+            DiagnosticResultScreen(
+                session = DiagnosticSessionUi(
+                    id = "session-2",
+                    createdAt = 0L,
+                    mode = "日志诊断",
+                    target = "本地日志",
+                    networkLines = emptyList(),
+                    probes = emptyList(),
+                    hypotheses = emptyList(),
+                ),
+                isRetesting = false,
+                retestProgress = "",
+                onBack = {}, onRetest = {}, onExportMarkdown = {}, onExportJson = {},
+                onShare = { shareCalls++ }, onDelete = {},
+            )
+        }
+
+        composeRule.onNodeWithText("通过系统分享").performScrollTo().performClick()
+        composeRule.onNodeWithText("分享完整诊断报告？").assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(0, shareCalls) }
+
+        composeRule.onNodeWithText("取消").performClick()
+        composeRule.runOnIdle { assertEquals(0, shareCalls) }
+
+        composeRule.onNodeWithText("通过系统分享").performScrollTo().performClick()
+        composeRule.onNodeWithText("继续分享").performClick()
+        composeRule.runOnIdle { assertEquals(1, shareCalls) }
+    }
 }

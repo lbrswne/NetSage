@@ -80,6 +80,7 @@ fun DiagnosticHistoryScreen(
     val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     var showClearConfirm by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<DiagnosticHistoryItemUi?>(null) }
+    var pendingShareId by remember { mutableStateOf<String?>(null) }
     var search by remember { mutableStateOf("") }
     var modeFilter by remember { mutableStateOf(HistoryModeFilter.ALL) }
     val visibleItems = filterDiagnosticHistory(items, search, modeFilter)
@@ -114,6 +115,15 @@ fun DiagnosticHistoryScreen(
             },
             dismissButton = {
                 OutlinedButton(onClick = { pendingDelete = null }) { Text("取消") }
+            },
+        )
+    }
+    pendingShareId?.let { id ->
+        SharePrivacyDialog(
+            onDismiss = { pendingShareId = null },
+            onConfirm = {
+                pendingShareId = null
+                onShare(id)
             },
         )
     }
@@ -192,7 +202,7 @@ fun DiagnosticHistoryScreen(
                     Text(item.probeSummary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Button(onClick = { onOpen(item.id) }, modifier = Modifier.fillMaxWidth()) { Text("查看会话详情") }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { onShare(item.id) }, modifier = Modifier.weight(1f)) { Text("分享报告") }
+                        OutlinedButton(onClick = { pendingShareId = item.id }, modifier = Modifier.weight(1f)) { Text("分享报告") }
                         OutlinedButton(onClick = { pendingDelete = item }, modifier = Modifier.weight(1f)) { Text("删除") }
                     }
                 }

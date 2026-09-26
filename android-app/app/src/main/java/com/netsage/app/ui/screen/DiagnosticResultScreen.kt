@@ -92,6 +92,7 @@ fun DiagnosticResultScreen(
     val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(session.createdAt))
     var showTechnicalDetails by remember(session.id) { mutableStateOf(false) }
     var showDeleteConfirm by remember(session.id) { mutableStateOf(false) }
+    var showShareConfirm by remember(session.id) { mutableStateOf(false) }
 
     if (showDeleteConfirm) {
         AlertDialog(
@@ -106,6 +107,15 @@ fun DiagnosticResultScreen(
             },
             dismissButton = {
                 OutlinedButton(onClick = { showDeleteConfirm = false }) { Text("取消") }
+            },
+        )
+    }
+    if (showShareConfirm) {
+        SharePrivacyDialog(
+            onDismiss = { showShareConfirm = false },
+            onConfirm = {
+                showShareConfirm = false
+                onShare()
             },
         )
     }
@@ -315,7 +325,7 @@ fun DiagnosticResultScreen(
                     OutlinedButton(onClick = onExportMarkdown, modifier = Modifier.weight(1f)) { Text("导出 Markdown") }
                     OutlinedButton(onClick = onExportJson, modifier = Modifier.weight(1f)) { Text("导出 JSON") }
                 }
-                OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth()) { Text("通过系统分享") }
+                OutlinedButton(onClick = { showShareConfirm = true }, modifier = Modifier.fillMaxWidth()) { Text("通过系统分享") }
                 OutlinedButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.fillMaxWidth()) { Text("删除本地会话") }
             }
         }

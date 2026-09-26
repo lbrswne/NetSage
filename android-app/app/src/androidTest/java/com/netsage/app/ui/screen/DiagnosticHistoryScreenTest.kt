@@ -126,12 +126,21 @@ class DiagnosticHistoryScreenTest {
     }
 
     @Test
-    fun historyCardOffersDirectReportSharing() {
+    fun historySharingRequiresPrivacyConfirmationForFilteredSession() {
         val sharedIds = mutableListOf<String>()
         showHistory(count = 2, onShare = sharedIds::add)
 
         composeRule.onNodeWithText("搜索目标地址或摘要").performTextInput("目标 2")
         composeRule.onNodeWithText("分享报告").performScrollTo().performClick()
+        composeRule.onNodeWithText("分享完整诊断报告？").assertIsDisplayed()
+        composeRule.onNodeWithText("报告可能包含原始日志、网络快照（如本地地址、网关、DNS）和探测证据。确认后将打开系统分享面板，由你选择分享对象。").assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(emptyList<String>(), sharedIds) }
+
+        composeRule.onNodeWithText("取消").performClick()
+        composeRule.runOnIdle { assertEquals(emptyList<String>(), sharedIds) }
+
+        composeRule.onNodeWithText("分享报告").performScrollTo().performClick()
+        composeRule.onNodeWithText("继续分享").performClick()
         composeRule.runOnIdle { assertEquals(listOf("2"), sharedIds) }
     }
 }
