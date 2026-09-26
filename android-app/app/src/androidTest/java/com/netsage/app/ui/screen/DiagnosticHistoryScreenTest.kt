@@ -20,7 +20,7 @@ class DiagnosticHistoryScreenTest {
 
     private var clearCalls = 0
 
-    private fun showHistory(count: Int = 2) {
+    private fun showHistory(count: Int = 2, onShare: (String) -> Unit = {}) {
         composeRule.setContent {
             DiagnosticHistoryScreen(
                 items = (1..count).map { index ->
@@ -36,6 +36,7 @@ class DiagnosticHistoryScreenTest {
                 },
                 onBack = {},
                 onOpen = {},
+                onShare = onShare,
                 onDelete = {},
                 onClear = { clearCalls++ },
             )
@@ -87,7 +88,7 @@ class DiagnosticHistoryScreenTest {
                     DiagnosticHistoryItemUi("2", 0L, "日志诊断", DiagnosticSessionMode.LOG_ANALYSIS, "本地日志", "连接超时", "探测"),
                     DiagnosticHistoryItemUi("3", 0L, "修复后复测", DiagnosticSessionMode.RETEST, "example.net", "已恢复", "探测"),
                 ),
-                onBack = {}, onOpen = {}, onDelete = {}, onClear = {},
+                onBack = {}, onOpen = {}, onShare = {}, onDelete = {}, onClear = {},
             )
         }
 
@@ -98,5 +99,39 @@ class DiagnosticHistoryScreenTest {
         composeRule.onNodeWithText("全部").performClick()
         composeRule.onNodeWithText("搜索目标地址或摘要").performTextClearance()
         composeRule.onNodeWithText("筛选结果 3 条").assertIsDisplayed()
+    }
+
+    @Test
+    fun deletingOneSessionRequiresConfirmationAndTargetsSelectedId() {
+        val deletedIds = mutableListOf<String>()
+        composeRule.setContent {
+            DiagnosticHistoryScreen(
+                items = listOf(
+                    DiagnosticHistoryItemUi("first", 0L, "快速体检", DiagnosticSessionMode.QUICK_CHECKUP, "first.example", "摘要", "探测"),
+                ),
+                onBack = {}, onOpen = {}, onShare = {}, onDelete = deletedIds::add, onClear = {},
+            )
+        }
+
+        composeRule.onNodeWithText("删除").performScrollTo().performClick()
+        composeRule.onNodeWithText("将删除会话「first.example」，删除后无法恢复。").assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(emptyList<String>(), deletedIds) }
+
+        composeRule.onNodeWithText("取消").performClick()
+        composeRule.runOnIdle { assertEquals(emptyList<String>(), deletedIds) }
+
+        composeRule.onNodeWithText("删除").performScrollTo().performClick()
+        composeRule.onNodeWithText("确认删除").performClick()
+        composeRule.runOnIdle { assertEquals(listOf("first"), deletedIds) }
+    }
+
+    @Test
+    fun historyCardOffersDirectReportSharing() {
+        val sharedIds = mutableListOf<String>()
+        showHistory(count = 2, onShare = sharedIds::add)
+
+        composeRule.onNodeWithText("搜索目标地址或摘要").performTextInput("目标 2")
+        composeRule.onNodeWithText("分享报告").performScrollTo().performClick()
+        composeRule.runOnIdle { assertEquals(listOf("2"), sharedIds) }
     }
 }

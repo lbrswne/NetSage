@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -90,6 +91,24 @@ fun DiagnosticResultScreen(
 ) {
     val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(session.createdAt))
     var showTechnicalDetails by remember(session.id) { mutableStateOf(false) }
+    var showDeleteConfirm by remember(session.id) { mutableStateOf(false) }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("确认删除本地会话？") },
+            text = { Text("将删除会话「${session.target}」，删除后无法恢复。") },
+            confirmButton = {
+                Button(onClick = {
+                    showDeleteConfirm = false
+                    onDelete()
+                }) { Text("确认删除") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteConfirm = false }) { Text("取消") }
+            },
+        )
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
@@ -297,7 +316,7 @@ fun DiagnosticResultScreen(
                     OutlinedButton(onClick = onExportJson, modifier = Modifier.weight(1f)) { Text("导出 JSON") }
                 }
                 OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth()) { Text("通过系统分享") }
-                OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth()) { Text("删除本地会话") }
+                OutlinedButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.fillMaxWidth()) { Text("删除本地会话") }
             }
         }
     }

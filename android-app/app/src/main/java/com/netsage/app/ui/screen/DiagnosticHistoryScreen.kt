@@ -73,11 +73,13 @@ fun DiagnosticHistoryScreen(
     items: List<DiagnosticHistoryItemUi>,
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
+    onShare: (String) -> Unit,
     onDelete: (String) -> Unit,
     onClear: () -> Unit,
 ) {
     val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     var showClearConfirm by remember { mutableStateOf(false) }
+    var pendingDelete by remember { mutableStateOf<DiagnosticHistoryItemUi?>(null) }
     var search by remember { mutableStateOf("") }
     var modeFilter by remember { mutableStateOf(HistoryModeFilter.ALL) }
     val visibleItems = filterDiagnosticHistory(items, search, modeFilter)
@@ -97,6 +99,22 @@ fun DiagnosticHistoryScreen(
             dismissButton = {
                 OutlinedButton(onClick = { showClearConfirm = false }) { Text("取消") }
             }
+        )
+    }
+    pendingDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("确认删除本地会话？") },
+            text = { Text("将删除会话「${item.target}」，删除后无法恢复。") },
+            confirmButton = {
+                Button(onClick = {
+                    pendingDelete = null
+                    onDelete(item.id)
+                }) { Text("确认删除") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { pendingDelete = null }) { Text("取消") }
+            },
         )
     }
     Column(
@@ -173,7 +191,10 @@ fun DiagnosticHistoryScreen(
                     Text(item.summary, style = MaterialTheme.typography.bodyMedium)
                     Text(item.probeSummary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Button(onClick = { onOpen(item.id) }, modifier = Modifier.fillMaxWidth()) { Text("查看会话详情") }
-                    OutlinedButton(onClick = { onDelete(item.id) }, modifier = Modifier.fillMaxWidth()) { Text("删除") }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { onShare(item.id) }, modifier = Modifier.weight(1f)) { Text("分享报告") }
+                        OutlinedButton(onClick = { pendingDelete = item }, modifier = Modifier.weight(1f)) { Text("删除") }
+                    }
                 }
             }
         }

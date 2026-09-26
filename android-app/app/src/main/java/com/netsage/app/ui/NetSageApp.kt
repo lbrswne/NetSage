@@ -471,6 +471,15 @@ fun NetSageApp(
                 diagnosticVm.selectSession(id)
                 state.page = AppPage.DIAGNOSTIC_RESULT
             },
+            onShare = { id ->
+                diagnosticUi.sessions.firstOrNull { it.id == id }?.let { selected ->
+                    LocalDocumentIo.shareText(
+                        context,
+                        "NetSage 本地诊断报告",
+                        sessionExporter.toMarkdown(selected),
+                    )
+                }
+            },
             onDelete = diagnosticVm::deleteSession,
             onClear = diagnosticVm::clearSessions,
         )
