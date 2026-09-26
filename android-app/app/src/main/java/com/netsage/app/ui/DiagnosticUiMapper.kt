@@ -41,7 +41,7 @@ fun DiagnosticSession.toResultUi(): DiagnosticSessionUi = DiagnosticSessionUi(
             target = observation.target,
             status = observation.status.name,
             durationMs = observation.durationMillis ?: 0,
-            evidence = observation.evidence.take(8),
+            evidence = if (observation.type == ProbeType.DNS) formatDnsDetails(observation) else observation.evidence.take(8),
             error = observation.errorMessage,
         )
     },
@@ -68,12 +68,12 @@ fun DiagnosticSession.toResultUi(): DiagnosticSessionUi = DiagnosticSessionUi(
     },
     comparisonLines = retestComparison?.let { comparison ->
         buildList {
+            if (comparison.networkChanged == true) add("⚠ 网络环境已变化：前后差异不能归因于修复操作。")
             add("总体：${comparison.outcome.name} · ${comparison.summary}")
-            comparison.networkChanged?.let {
-                add(if (it) "网络环境已变化，前后结果不能直接归因于修复操作。" else "网络快照未发现明显变化；仍需结合重复采样判断。")
-            }
+            if (comparison.networkChanged == false) add("网络快照未发现明显变化；仍需结合重复采样判断。")
             comparison.probeComparisons.forEach { probe ->
-                add("${probe.probeType.name} ${probe.target}：${probe.change.name}，${probe.beforeStatus ?: "无"} → ${probe.afterStatus ?: "无"}")
+                val detail = if (probe.probeType == ProbeType.TCP && probe.summary.contains("TCP 建连成功")) " · ${probe.summary}" else ""
+                add("${probe.probeType.name} ${probe.target}：${probe.change.name}，${probe.beforeStatus ?: "无"} → ${probe.afterStatus ?: "无"}$detail")
             }
             if (comparison.resolvedHypothesisCodes.isNotEmpty()) add("已消失：${comparison.resolvedHypothesisCodes.joinToString()}")
             if (comparison.remainingHypothesisCodes.isNotEmpty()) add("仍存在：${comparison.remainingHypothesisCodes.joinToString()}")
@@ -105,6 +105,7 @@ fun DiagnosticSession.toHistoryUi(): DiagnosticHistoryItemUi {
         id = id,
         createdAt = createdAtEpochMillis,
         mode = mode.label(),
+        sessionMode = mode,
         target = targetHost.ifBlank { "本地日志" },
         summary = hypotheses.firstOrNull()?.title ?: title.ifBlank { "暂无诊断摘要" },
         probeSummary = if (observations.isEmpty()) {

@@ -88,7 +88,7 @@ object RetestComparator {
             afterDurationMillis = after?.durationMillis,
             durationDeltaMillis = durationDelta,
             change = change,
-            summary = when (change) {
+            summary = tcpCountSummary(before, after) ?: when (change) {
                 ProbeChange.IMPROVED -> "Probe status improved"
                 ProbeChange.UNCHANGED -> "Probe status is unchanged"
                 ProbeChange.REGRESSED -> "Probe status regressed"
@@ -98,6 +98,19 @@ object RetestComparator {
             },
         )
     }
+
+    private fun tcpCountSummary(before: ProbeObservation?, after: ProbeObservation?): String? {
+        if ((before ?: after)?.type != ProbeType.TCP) return null
+        val lines = listOf("ipv4" to "IPv4", "ipv6" to "IPv6").mapNotNull { (key, label) ->
+            val beforeCount = before?.attributes?.get("${key}Connections")?.takeIf(::isTcpCount)
+            val afterCount = after?.attributes?.get("${key}Connections")?.takeIf(::isTcpCount)
+            if (beforeCount == null && afterCount == null) null
+            else "$label TCP 建连成功：前 ${beforeCount ?: "未记录"} → 后 ${afterCount ?: "未记录"}"
+        }
+        return lines.takeIf { it.isNotEmpty() }?.joinToString("；")
+    }
+
+    private fun isTcpCount(value: String): Boolean = value.matches(Regex("[0-9]+/[1-9][0-9]*"))
 
     private fun compareHttpStatus(before: ProbeObservation, after: ProbeObservation): ProbeChange? {
         if (before.type != ProbeType.HTTP || after.type != ProbeType.HTTP) return null

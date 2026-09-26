@@ -162,6 +162,16 @@ fun DiagnosticResultScreen(
                 }
             }
         }
+        val dnsProbes = session.probes.filter { it.title == "DNS" }
+        if (dnsProbes.isNotEmpty()) {
+            item {
+                EvidenceSection(
+                    "DNS 解析详情",
+                    dnsProbes.flatMap { probe -> listOf("${probe.role} · ${probe.target}") + probe.evidence } +
+                        "解析结果只反映本次查询，不能单独证明目标服务可达。",
+                )
+            }
+        }
         if (session.tcpLines.isNotEmpty()) {
             item {
                 EvidenceSection("IPv4 / IPv6 TCP 建连", session.tcpLines + "仅代表本次少量建连采样，不是丢包率或持续可用性。")
@@ -245,7 +255,23 @@ fun DiagnosticResultScreen(
             }
         }
         if (session.comparisonLines.isNotEmpty()) {
-            item { EvidenceSection("修复后复测对比", session.comparisonLines) }
+            val changedNetworkWarning = session.comparisonLines.firstOrNull()?.takeIf { it.startsWith("⚠ 网络环境已变化") }
+            if (changedNetworkWarning != null) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    ) {
+                        Text(
+                            changedNetworkWarning,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
+            item { EvidenceSection("修复后复测对比", if (changedNetworkWarning == null) session.comparisonLines else session.comparisonLines.drop(1)) }
         }
         item {
             if (isRetesting) {

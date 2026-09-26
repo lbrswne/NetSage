@@ -5,6 +5,8 @@ import com.netsage.app.diagnostic.session.DiagnosticSession
 import com.netsage.app.diagnostic.session.ProbeObservation
 import com.netsage.app.diagnostic.session.ProbeStatus
 import com.netsage.app.diagnostic.session.ProbeType
+import com.netsage.app.diagnostic.session.ProbeRetestComparison
+import com.netsage.app.diagnostic.session.RetestComparison
 import com.netsage.app.diagnostic.session.REFERENCE_HOST_KEY
 import com.netsage.app.diagnostic.session.REFERENCE_ROLE
 import com.netsage.app.diagnostic.session.TARGET_ROLE_KEY
@@ -12,6 +14,48 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DiagnosticUiMapperTest {
+    @Test
+    fun `DNS result exposes grouped address details from stored evidence`() {
+        val result = DiagnosticSession(
+            observations = listOf(ProbeObservation(
+                type = ProbeType.DNS,
+                status = ProbeStatus.SUCCESS,
+                attributes = mapOf(
+                    "addresses" to "2001:db8::1, 192.0.2.1",
+                    "resolver" to "DnsResolver",
+                    "dnsRcodeAvailable" to "available",
+                ),
+            )),
+        ).toResultUi()
+
+        assertEquals(
+            listOf("DNS 解析成功", "IPv4：192.0.2.1", "IPv6：2001:db8::1", "解析器：DnsResolver", "RCODE：可获取，未记录具体值"),
+            result.probes.single().evidence,
+        )
+    }
+
+    @Test
+    fun `changed network warning precedes retest evidence and tcp counts are visible`() {
+        val result = DiagnosticSession(
+            retestComparison = RetestComparison(
+                networkChanged = true,
+                probeComparisons = listOf(ProbeRetestComparison(
+                    probeType = ProbeType.TCP,
+                    target = "example.com:443",
+                    beforeStatus = ProbeStatus.FAILED,
+                    afterStatus = ProbeStatus.SUCCESS,
+                    summary = "IPv4 TCP 建连成功：前 1/3 → 后 3/3；IPv6 TCP 建连成功：前 0/3 → 后 2/3",
+                )),
+            ),
+        ).toResultUi()
+
+        assertEquals("⚠ 网络环境已变化：前后差异不能归因于修复操作。", result.comparisonLines.first())
+        assertEquals(
+            "TCP example.com:443：INCONCLUSIVE，FAILED → SUCCESS · IPv4 TCP 建连成功：前 1/3 → 后 3/3；IPv6 TCP 建连成功：前 0/3 → 后 2/3",
+            result.comparisonLines.last(),
+        )
+    }
+
     @Test
     fun `all recommended actions are preserved for the result UI`() {
         val actions = listOf("检查 DNS 设置", "更换 DNS 后复测", "记录复测结果")
