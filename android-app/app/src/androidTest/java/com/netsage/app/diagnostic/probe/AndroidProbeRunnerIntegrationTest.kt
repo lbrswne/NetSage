@@ -7,6 +7,7 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.util.Collections
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -60,6 +61,44 @@ class AndroidProbeRunnerIntegrationTest {
             assertTrue(http.evidence["finalUrl"].orEmpty().endsWith("/final"))
             assertEquals("/start", serverTakeRequest(timeoutSeconds = 2)?.path)
             assertEquals("/final", serverTakeRequest(timeoutSeconds = 2)?.path)
+        }
+    }
+
+    @Test
+    fun httpsRedirectToHttpIsBlockedBeforeCleartextRequest() = runBlocking {
+        val certificate = HeldCertificate.Builder()
+            .commonName("localhost")
+            .addSubjectAlternativeName("127.0.0.1")
+            .build()
+        val serverCertificates = HandshakeCertificates.Builder()
+            .heldCertificate(certificate)
+            .build()
+        val clientCertificates = HandshakeCertificates.Builder()
+            .addTrustedCertificate(certificate.certificate)
+            .build()
+        val originalSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory()
+        try {
+            HttpsURLConnection.setDefaultSSLSocketFactory(clientCertificates.sslSocketFactory())
+            withServer(beforeStart = { useHttps(serverCertificates.sslSocketFactory(), false) }) {
+                val httpsServer = this
+                withServer {
+                    val httpServer = this
+                    httpsServer.enqueue(
+                        MockResponse().setResponseCode(302)
+                            .setHeader("Location", "http://127.0.0.1:${httpServer.port}/leak"),
+                    )
+                    httpServer.enqueue(MockResponse().setResponseCode(204))
+
+                    val http = runner().run(httpsRequest(httpsServer.port)).observation(ProbeKind.HTTP)
+
+                    assertEquals(ProbeStatus.FAILURE, http.status)
+                    assertEquals("HTTP_DOWNGRADE_REDIRECT_BLOCKED", http.error?.code)
+                    assertEquals("/", httpsServer.serverTakeRequest(timeoutSeconds = 2)?.path)
+                    assertEquals(0, httpServer.requestCount)
+                }
+            }
+        } finally {
+            HttpsURLConnection.setDefaultSSLSocketFactory(originalSocketFactory)
         }
     }
 

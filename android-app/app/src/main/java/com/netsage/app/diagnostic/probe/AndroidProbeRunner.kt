@@ -439,9 +439,6 @@ class AndroidProbeRunner(
                         "finalUrl" to currentUrl.toExternalForm(),
                         "firstResponseMillis" to firstResponseMillis.toString(),
                         "contentType" to contentType,
-                        "redirectLimitReached" to (
-                            shouldRedirect && redirectChain.size >= target.maxRedirects
-                        ).toString(),
                     )
                     return@withContext StepPayload(
                         status = if (statusCode >= 500) ProbeStatus.FAILURE else ProbeStatus.SUCCESS,
@@ -465,6 +462,21 @@ class AndroidProbeRunner(
                         error = ProbeError(
                             "HTTP_UNSUPPORTED_REDIRECT",
                             "Redirect uses unsupported scheme: ${nextUrl.protocol}",
+                        ),
+                    )
+                }
+                if (target.scheme == ProbeScheme.HTTPS && nextUrl.protocol == "http") {
+                    return@withContext StepPayload(
+                        status = ProbeStatus.FAILURE,
+                        evidence = mapOf(
+                            "statusCode" to statusCode.toString(),
+                            "location" to location,
+                            "redirectChain" to redirectChain.joinToString(" | "),
+                            "blockedRedirectUrl" to nextUrl.toExternalForm(),
+                        ),
+                        error = ProbeError(
+                            "HTTP_DOWNGRADE_REDIRECT_BLOCKED",
+                            "HTTPS target redirect to cleartext HTTP was not followed",
                         ),
                     )
                 }
